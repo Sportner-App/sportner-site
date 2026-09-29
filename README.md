@@ -63,14 +63,46 @@ npm run gorseller
 
 Betik iki yerden okur:
 
-- `~/Desktop/sportner-appstore/6.9"/appstore-*.png` — App Store kareleri.
-  Cihaz çerçevesinin **içi** kesilir (`168,652` → `955×2055`), çünkü sitedeki
-  telefon çerçevesi CSS ile çiziliyor ve görsele gömülü başlıklar sayfada
-  responsive olmaz.
-- `sportnerApp/assets/images/` — fotoğraflar ve uygulama ikonu.
+- `sportnerApp/assets/images/` — fotoğraflar ve uygulama ikonu. Ekran içindeki
+  etkinlik kartlarının fotoğrafları da buradan kırpılıyor; ekran
+  görüntülerindeki fotoğrafların üstünde arayüz olduğu için onlar temiz
+  kesilemiyor.
+- `~/Desktop/sportner-appstore/6.9"/appstore-4.png` ve `appstore-5.png` —
+  kullanıcı avatarları (kadro listesi ve "yeni sporcular" satırı) ile keşfet
+  akışındaki pilates fotoğrafı buradan kırpılıyor.
+- `~/Desktop/sportner-appstore/harita-ham.png` — simülatörden alınmış bir
+  harita karesi. App Store karesi kullanılmıyor, çünkü orada iki küme pini
+  görselin içine gömülü; pinler sitede DOM ile çizilip kaydırmayla düşüyor.
 
 Kaynak bulunamazsa o dosya atlanır ve uyarı basılır; `public/` içindekiler
 olduğu gibi kalır.
+
+## Telefon ekranları
+
+`src/components/ekranlar/` altındaki beş ekran **görsel değil, gerçek DOM**.
+Kaydırdıkça etkinlik kartları sırayla giriyor, harita pinleri yukarıdan düşüp
+hafifçe aşarak oturuyor, kadro satırları sağdan kayıyor, kontenjan çubuğu
+kendi oranına doluyor.
+
+Ölçüler `cqw` (kap genişliğinin yüzdesi) cinsinden yazıldı; telefon çerçevesi
+sayfada hangi boyutta çizilirse çizilsin içerik oranıyla ölçekleniyor ve
+hiçbir yerde bulanıklaşmıyor. Tasarım genişliği 390pt kabul edildi, yani
+1cqw = 3.9px — bir ölçüyü çevirmek için pt değerini 3.9'a böl.
+
+Animasyon motoru `app/globals.css` sonundaki bölümde. `EkranAkisi` her karede
+sahnenin köküne tek bir sayı yazıyor: `--p` (o adımın 0–1 ilerlemesi). Her
+eleman `girer` sınıfıyla kendi gecikmesini (`--g`) ve süresini (`--s`)
+bildiriyor; `--t` (doğrusal), `--e` (yumuşak biten) ve `--b` (hafif aşan)
+değerlerini CSS hesaplıyor. Böylece onlarca eleman için kare başına tek JS
+yazımı yetiyor, React yeniden render etmiyor.
+
+Görünmeyen ekranlar `visibility: hidden` oluyor — beşi de bağlı kalıyor ama
+yalnızca görünen boyanıyor.
+
+Ekranlardaki kişiler App Store karelerindeki seed edilmiş demo hesaplar —
+gerçek kullanıcı değiller, aynı görseller App Store listesinde zaten yayında.
+Avatarlar o karelerden kırpılıyor; halkanın **içindeki** foto alınıyor, halkayı
+site kendisi çiziyor.
 
 ## Kaydırmaya bağlı animasyonlar
 

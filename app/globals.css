@@ -252,3 +252,77 @@ body {
     font-weight: 600;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Ekran ici animasyon motoru
+
+   EkranAkisi her kaydirma karesinde sahnenin kokune tek bir sayi yazar: --p
+   (o adimin 0–1 arasindaki ilerlemesi). Ekranin icindeki her eleman kendi
+   gecikmesini (--g) ve suresini (--s) bildirir, gerisini CSS hesaplar.
+
+   Boylece onlarca eleman icin tek JS yazimi yetiyor; React yeniden render
+   etmiyor ve her sey birlesik (compositor) katmanda kaliyor.
+   -------------------------------------------------------------------------- */
+@property --p {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: true;
+}
+
+/**
+ * Elemanin kendi ilerlemesi.
+ *   --t  dogrusal 0–1
+ *   --e  yumusak biten (out-cubic) — cogu giris icin
+ *   --b  hafif asan (out-back) — dusen pin, patlayan rozet icin
+ */
+@utility girer {
+  --g: 0;
+  --s: 0.4;
+  --t: clamp(0, calc((var(--p) - var(--g)) / var(--s)), 1);
+  --e: calc(1 - (1 - var(--t)) * (1 - var(--t)) * (1 - var(--t)));
+  --b: calc(
+    1 + 2.4 * (var(--t) - 1) * (var(--t) - 1) * (var(--t) - 1) + 1.4 *
+      (var(--t) - 1) * (var(--t) - 1)
+  );
+}
+
+/** Asagidan yukselerek belirir. */
+@utility yukselir {
+  opacity: var(--e);
+  transform: translateY(calc((1 - var(--e)) * 26px));
+}
+
+/** Sagdan kayarak belirir — liste satirlari icin. */
+@utility sagdan {
+  opacity: var(--e);
+  transform: translateX(calc((1 - var(--e)) * 34px));
+}
+
+/** Soldan kayarak belirir. */
+@utility soldan {
+  opacity: var(--e);
+  transform: translateX(calc((1 - var(--e)) * -28px));
+}
+
+/** Yerinde, hafif asarak buyur — rozet ve avatar icin. */
+@utility patlar {
+  opacity: var(--t);
+  transform: scale(calc(0.4 + var(--b) * 0.6));
+}
+
+/** Yukaridan duser, zemine carpip oturur — harita pini icin. */
+@utility duser {
+  opacity: var(--t);
+  transform: translateY(calc((1 - var(--b)) * -60px)) scale(calc(0.6 + var(--b) * 0.4));
+}
+
+/** Yalnizca soner/belirir. */
+@utility belirir {
+  opacity: var(--e);
+}
+
+/** Soldan saga dolan cubuk. Genislik --dolu ile sinirlanir (0–1). */
+@utility dolar {
+  transform: scaleX(calc(var(--e) * var(--dolu, 1)));
+  transform-origin: left center;
+}

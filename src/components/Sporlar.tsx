@@ -64,12 +64,16 @@ export default function Sporlar() {
 
   // Iki sira ters yonde suruklenir: bolum ekrandan gecerken satirlar birbirine
   // gore kayar, sabit bir seride gore daha canli durur.
+  //
+  // Kayma piksel cinsinden, yuzde degil: yuzde satirin *kendi* genisligine
+  // gore hesaplandigi icin genis ekranda (satir ekrandan darken) satiri sola
+  // itip solda kesiyor, sagda bosluk birakiyordu.
   // Kaydirmaya bagli deger neden elle yaziliyor: src/lib/kaydirma.ts
   const ustRef = useIlerlemeStili<HTMLUListElement>(scrollYProgress, (el, p) => {
-    el.style.transform = `translateX(${araDeger(p, [0, 1], [2, -14])}%)`;
+    el.style.transform = `translateX(${araDeger(p, [0, 1], [56, -56])}px)`;
   });
   const altRef = useIlerlemeStili<HTMLUListElement>(scrollYProgress, (el, p) => {
-    el.style.transform = `translateX(${araDeger(p, [0, 1], [-14, 2])}%)`;
+    el.style.transform = `translateX(${araDeger(p, [0, 1], [-56, 56])}px)`;
   });
 
   return (
@@ -83,32 +87,36 @@ export default function Sporlar() {
         </Beliren>
       </div>
 
+      {/* Satirlar ortalanir: ekrandan genisse iki yana esit tasar, darsa
+          ortada durur. Eskiden sola dayaliydi ve genis ekranda sagda kocaman
+          bir bosluk kaliyordu. */}
       <div className="mt-14 flex flex-col gap-4">
         {siralar.map((sira, i) => (
-          <ul
-            key={i}
-            ref={azalt ? undefined : i === 0 ? ustRef : altRef}
-            className="flex w-max gap-3 px-6"
-          >
-            {sira.map(([ad, renk]) => (
-              <li key={ad}>
-                <span
-                  className="flex items-center gap-2.5 whitespace-nowrap rounded-full border px-5 py-2.5 text-[0.9375rem] font-medium text-ink transition-colors duration-300"
-                  style={{
-                    borderColor: `color-mix(in oklab, ${renk} 34%, transparent)`,
-                    background: `color-mix(in oklab, ${renk} 9%, transparent)`,
-                  }}
-                >
+          <div key={i} className="flex justify-center">
+            <ul
+              ref={azalt ? undefined : i === 0 ? ustRef : altRef}
+              className="flex w-max gap-3 px-6"
+            >
+              {sira.map(([ad, renk]) => (
+                <li key={ad}>
                   <span
-                    aria-hidden
-                    className="block size-2 rounded-full"
-                    style={{ background: renk }}
-                  />
-                  {ad}
-                </span>
-              </li>
-            ))}
-          </ul>
+                    className="flex items-center gap-2.5 whitespace-nowrap rounded-full border px-5 py-2.5 text-[0.9375rem] font-medium text-ink transition-colors duration-300"
+                    style={{
+                      borderColor: `color-mix(in oklab, ${renk} 34%, transparent)`,
+                      background: `color-mix(in oklab, ${renk} 9%, transparent)`,
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      className="block size-2 rounded-full"
+                      style={{ background: renk }}
+                    />
+                    {ad}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
       </div>
 
