@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+/* --------------------------------------------------------------------------
+   Renkler ve olculer uygulamanin tasarim belirteclerinden (sportnerApp/
+   src/constants/design-tokens.js) birebir alindi. Site ile uygulama ayni
+   dili konussun diye deger uydurulmuyor.
+   -------------------------------------------------------------------------- */
+@theme {
+  --color-bg: #06111a;
+  --color-bg-2: #091722;
+  --color-surface: #0d1b27;
+  --color-surface-2: #152635;
+  --color-line: #203443;
+  --color-line-strong: #345064;
+
+  --color-lime: #ccff00;
+  --color-ink: #f4f6f2;
+  --color-muted: #a8b2b8;
+  --color-soft: #6f7d86;
+
+  --color-basketbol: #ff6b1a;
+  --color-futbol: #9ed900;
+  --color-voleybol: #9a72ff;
+  --color-kosu: #5eead4;
+  --color-tenis: #fbbf24;
+
+  --font-display: var(--yazi-display), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--yazi-body), ui-sans-serif, system-ui, sans-serif;
+
+  /* Apple'in urun sayfalarindaki gibi yumusak, gec biten gecis */
+  --ease-yumusak: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Sitenin tek temasi var: uygulama gibi koyu. */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Sabit baslik, id'ye atlayan baglantilarda basligi kesmesin */
+  scroll-padding-top: 5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-lime);
+  color: var(--color-bg);
+}
+
+/* Klavyeyle gezenler icin gorunur odak; fareyle tiklayinda cikmaz. */
+:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Hareketi azalt: kullanici isletim sisteminde istediyse tum animasyonlar
+   kapanir. Kaydirmaya bagli gecisler bilesen tarafinda da kontrol ediliyor,
+   burasi CSS ile calisanlari susturur.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility govde {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 78rem;
+  padding-inline: 1.5rem;
+}
+
+/* Buyuk baslik: Anybody'nin dar ve sikisik hali */
+@utility baslik {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Bolum ustundeki kucuk lime etiket */
+@utility etiket {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-lime);
+}
+
+/* Cam panel: uygulamadaki kartlarin web karsiligi */
+@utility cam {
+  background: color-mix(in oklab, var(--color-surface) 72%, transparent);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* --------------------------------------------------------------------------
+   Yasal metinler: content/*.md dosyalarindan uretilen HTML bu sinifla
+   bicimlenir. marked ham HTML urettigi icin secici sinif degil eleman uzerinden
+   yaziliyor.
+   -------------------------------------------------------------------------- */
+@utility metin {
+  color: var(--color-muted);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+
+  & h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    color: var(--color-ink);
+    margin-bottom: 2.5rem;
+  }
+
+  & h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+    color: var(--color-ink);
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+  }
+
+  & h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1875rem;
+    color: var(--color-ink);
+    margin-top: 2.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  & p {
+    margin-block: 1.125rem;
+  }
+
+  & strong {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+
+  & a {
+    color: var(--color-lime);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    transition: opacity 0.2s;
+  }
+
+  & a:hover {
+    opacity: 0.7;
+  }
+
+  & ul,
+  & ol {
+    margin-block: 1.125rem;
+    padding-left: 1.25rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  & ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  & ul > li {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+
+  & ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0.25rem;
+    top: 0.75rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-lime);
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & ol::marker {
+    color: var(--color-lime);
+  }
+
+  & code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
+    border-radius: 5px;
+    padding: 0.1em 0.4em;
+    color: var(--color-ink);
+  }
+
+  & hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin-block: 3rem;
+  }
+
+  & table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-block: 1.75rem;
+    font-size: 0.9375rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  & th,
+  & td {
+    border: 1px solid var(--color-line);
+    padding: 0.7rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  & th {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+}

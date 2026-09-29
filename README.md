@@ -1,9 +1,9 @@
 # sportner.app
 
-Sportner'ın tanıtım ve yasal metin sitesi. Statik HTML, GitHub Pages'te
-barınıyor, özel alan adı `sportner.app`.
+Sportner'ın tanıtım ve yasal metin sitesi. Next.js ile yazılır, statik olarak
+dışa aktarılır, GitHub Pages'te barınır. Özel alan adı `sportner.app`.
 
-App Store Connect'e verilecek adresler:
+App Store Connect'e verilen adresler:
 
 | Alan | Adres |
 |---|---|
@@ -11,64 +11,98 @@ App Store Connect'e verilecek adresler:
 | Support URL | `https://sportner.app/destek/` |
 | Marketing URL (isteğe bağlı) | `https://sportner.app/` |
 
+> Bu üç adres **değişmemeli**. `next.config.mjs` içindeki `trailingSlash: true`
+> ayarı `out/gizlilik/index.html` gibi dizin yolları ürettiği için adresler
+> korunuyor. Ayarı kaldırırsan Apple incelemesindeki bağlantılar kırılır.
+
+## Çalıştırma
+
+```
+npm install
+npm run dev
+```
+
+`http://localhost:3000` adresinde açılır.
+
 ## Yapı
 
 ```
-content/          kaynak metinler (Markdown) — düzenlenecek yer burası
-  index.md        ana sayfa
-  destek.md       destek + SSS
-  gizlilik.md     gizlilik politikası
-  kvkk.md         KVKK aydınlatma metni
-build.py          content/*.md -> HTML üretir
-onizleme.js       yerel önizleme sunucusu
-CNAME             özel alan adı (build.py üretir, elle dokunma)
+app/                     sayfalar (App Router)
+  page.tsx               ana sayfa — bölümleri sırayla dizer
+  destek|gizlilik|kvkk/  content/*.md dosyalarından üretilen metin sayfaları
+  layout.tsx             yazı tipleri, meta etiketler, başlık/altlık
+  globals.css            renkler, tipografi, yasal metin biçimleri
+src/components/          bölüm bileşenleri
+src/lib/                 saf yardımcılar (aşağıya bak)
+content/                 yasal metinlerin kaynağı (Markdown) — düzenlenecek yer
+public/                  üretilmiş görseller, CNAME, favicon
+tools/                   görsel hazırlama betiği
 ```
-
-Üretilen `index.html` dosyaları depoya dahil — GitHub Pages bir derleme
-adımı çalıştırmadığı için bunlar da işlenmeli.
 
 ## Metin güncelleme
 
-1. `content/` içindeki Markdown dosyasını düzenle
-2. `python3 build.py`
-3. Değişiklikleri işle ve gönder
+Yasal metinler hâlâ Markdown. `content/` içindeki dosyayı düzenle, hepsi bu —
+derleme sırasında HTML'e çevrilir.
 
-`build.py`, Markdown'ın tamamını değil bu metinlerde kullanılan alt kümesini
-işler: başlık, kalın, bağlantı, satır içi kod, liste, tablo, yatay çizgi,
-paragraf. Yeni bir söz dizimi kullanacaksan önce `build.py`'ye eklemen gerekir.
+Her dosyanın ilk satırı `# Başlık` olmalı; sayfa başlığı ve `<title>` oradan
+okunur (`src/lib/icerik.ts`).
 
-## Yerel önizleme
+Ana sayfa metinleri Markdown'da değil, ilgili bileşenin içinde: yerleşimle
+iç içe geçtikleri için ayrı tutmak iki ayrı doğruluk kaynağı yaratıyordu.
 
-```
-node onizleme.js
-```
+## Görseller
 
-`http://127.0.0.1:8788` adresinde açılır.
+Kaynak görseller depoda **değil** (yüzlerce MB). `public/` altındaki üretilmiş
+WebP dosyaları depoda duruyor ve yayına onlar gidiyor.
 
-## İlk kurulum (bir kez)
-
-### 1. Depoyu GitHub'a gönder
+Yeniden üretmek gerekirse:
 
 ```
-git init
-git add .
-git commit -m "Sportner sitesi: tanıtım, destek ve yasal metinler"
-git branch -M main
-git remote add origin git@github.com:Sportner-App/sportner-site.git
-git push -u origin main
+npm run gorseller
 ```
 
-### 2. GitHub Pages'i aç
+Betik iki yerden okur:
 
-Depo → **Settings** → **Pages**
-- Source: **Deploy from a branch**
-- Branch: **main** / **/ (root)**
+- `~/Desktop/sportner-appstore/6.9"/appstore-*.png` — App Store kareleri.
+  Cihaz çerçevesinin **içi** kesilir (`168,652` → `955×2055`), çünkü sitedeki
+  telefon çerçevesi CSS ile çiziliyor ve görsele gömülü başlıklar sayfada
+  responsive olmaz.
+- `sportnerApp/assets/images/` — fotoğraflar ve uygulama ikonu.
 
-`CNAME` dosyası depoda olduğu için özel alan adı kendiliğinden dolar.
+Kaynak bulunamazsa o dosya atlanır ve uyarı basılır; `public/` içindekiler
+olduğu gibi kalır.
 
-### 3. Cloudflare DNS
+## Kaydırmaya bağlı animasyonlar
 
-`sportner.app` için şu kayıtları ekle. **Proxy kapalı olmalı** (gri bulut) —
+`src/lib/kaydirma.ts` içindeki `useIlerlemeStili`, kaydırma ilerlemesini
+elemanın stiline her karede elle yazar.
+
+Bunun sebebi motion'un `style={{ opacity: useTransform(scrollYProgress, …) }}`
+yolunun kullanılamaması: motion v12 bu değerleri WAAPI ile hızlandırırken bir
+**ViewTimeline**'a bağlıyor. O çizelge "eleman ekrandan geçerken" ilerler ve
+`useScroll`'a verilen `offset` ile örtüşmeyebilir — sabitlenmiş (`sticky`) bir
+sahnede eleman ekranda hiç hareket etmediği için tamamen kayar. Ekran kareleri
+yanlış anda beliriyordu.
+
+Zamana bağlı giriş animasyonları (`initial`/`animate`) motion'da kalabilir;
+sorun yalnızca kaydırmaya bağlı olanlarda.
+
+Sahnenin geçiş pencereleri `src/lib/sahne.ts` içinde saf fonksiyon olarak
+duruyor; tarayıcı olmadan sınanabilir.
+
+## Yayınlama
+
+`main` dalına gönderilen her değişiklik `.github/workflows/deploy.yml` ile
+derlenip Pages'e gider.
+
+**Tek seferlik ayar:** Depo → Settings → Pages → Source → **GitHub Actions**.
+"Deploy from a branch" seçiliyken akış çalışır ama yayına çıkmaz.
+
+`public/CNAME` dosyası `out/` içine kopyalandığı için özel alan adı korunur.
+
+## Cloudflare DNS
+
+`sportner.app` için gereken kayıtlar. **Proxy kapalı olmalı** (gri bulut) —
 turuncu bulut açıkken GitHub sertifika üretemez.
 
 | Tip | Ad | İçerik |
@@ -83,11 +117,6 @@ turuncu bulut açıkken GitHub sertifika üretemez.
 | AAAA | @ | 2606:50c0:8003::153 |
 | CNAME | www | sportner-app.github.io |
 
-### 4. HTTPS
-
-DNS yayıldıktan sonra (genelde dakikalar, en fazla 24 saat) Pages ayarlarında
-**Enforce HTTPS** kutusu aktifleşir, işaretle.
-
 `.app` uzantısı tarayıcıların HSTS ön yükleme listesinde, yani HTTPS zorunlu.
 Sertifika hazır olmadan site açılmaz — bu normal, beklemek gerekiyor.
 
@@ -95,7 +124,7 @@ Sertifika hazır olmadan site açılmaz — bu normal, beklemek gerekiyor.
 
 Resend zaten `sportner.app` üzerinden işlem e-postası gönderiyor
 (`no-reply@sportner.app`) ve Cloudflare Email Routing `destek@sportner.app`
-kutusunu işletecek. Bir alan adında **yalnızca bir SPF kaydı** olabilir.
+kutusunu işletiyor. Bir alan adında **yalnızca bir SPF kaydı** olabilir.
 
 İkisini ayrı TXT kaydı olarak eklersen her ikisi de bozulur ve doğrulama
 e-postaları spam'e düşer. Tek satırda birleştir:
