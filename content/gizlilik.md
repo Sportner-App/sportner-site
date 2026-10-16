@@ -138,6 +138,9 @@ adresinden **destek@sportner.app** adresine yazman yeterli. Talebini en geç
 getiririz. Mevzuatın saklamayı zorunlu kıldığı veriler, ilgili süre boyunca
 yalnızca bu amaçla saklanır.
 
+Adım adım anlatım ve hangi verilerin silindiğinin tam listesi için
+[Hesap ve Veri Silme](/hesap-silme/) sayfasına bakabilirsin.
+
 ### Talepte bulunma
 Verilerine erişmek, düzeltilmesini veya silinmesini istemek için
 **destek@sportner.app** adresine yazabilirsin. Taleplere en geç **30 gün**
@@ -175,9 +178,10 @@ edersen **destek@sportner.app** adresine bildir.
 
 ## 9. Çocukların gizliliği
 
-Sportner **13 yaşından küçükler için tasarlanmamıştır** ve kayıt sırasında
-13 yaş sınırı uygulanır. 13 yaşından küçük bir kullanıcıya ait veri
-topladığımızı öğrenirsek hesabı kapatır ve veriyi sileriz.
+Sportner **13 yaşından küçükler için tasarlanmamıştır**. Doğum tarihi
+paylaşmak isteğe bağlıdır; paylaşıldığında 13 yaş sınırı uygulanır ve bu
+yaşın altındaki kayıtlar reddedilir. 13 yaşından küçük bir kullanıcıya ait
+veri topladığımızı öğrenirsek hesabı kapatır ve veriyi sileriz.
 
 ---
 

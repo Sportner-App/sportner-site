@@ -14,4 +14,5 @@ export const yasalBaglantilar = [
   { ad: "Destek", yol: "/destek/" },
   { ad: "Gizlilik Politikası", yol: "/gizlilik/" },
   { ad: "KVKK Aydınlatma Metni", yol: "/kvkk/" },
+  { ad: "Hesap ve Veri Silme", yol: "/hesap-silme/" },
 ] as const;

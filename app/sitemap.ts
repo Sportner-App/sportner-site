@@ -19,5 +19,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${site.alan}/destek/`, lastModified: bugun, priority: 0.7 },
     { url: `${site.alan}/gizlilik/`, lastModified: bugun, priority: 0.5 },
     { url: `${site.alan}/kvkk/`, lastModified: bugun, priority: 0.5 },
+    { url: `${site.alan}/hesap-silme/`, lastModified: bugun, priority: 0.5 },
   ];
 }

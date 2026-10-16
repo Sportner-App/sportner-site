@@ -4,7 +4,7 @@ import path from "node:path";
 import { marked } from "marked";
 
 /** content/ altindaki yasal metinler. Dosya adi = adres parcasi. */
-export type IcerikAdi = "destek" | "gizlilik" | "kvkk";
+export type IcerikAdi = "destek" | "gizlilik" | "kvkk" | "hesap-silme";
 
 export type Icerik = {
   /** Metnin ilk `# ` basligi — sayfa basligi ve <title> icin. */
