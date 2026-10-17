@@ -8,6 +8,9 @@ export const site = {
     "oyuncu arayanla oynamak isteyeni buluşturan bir topluluk uygulaması. " +
     "Yakınındaki etkinlikleri haritada gör, seviyene uygun olanı seç, katıl.",
   destekEposta: "destek@sportner.app",
+  appStore: "https://apps.apple.com/tr/app/sportner/id6805766485",
+  /** Play Console yayini bitmedi; rozet baglanti yerine "Yakinda" kaliyor. */
+  googlePlay: null,
 } as const;
 
 export const yasalBaglantilar = [

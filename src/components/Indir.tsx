@@ -2,8 +2,9 @@ import Beliren from "./Beliren";
 import { site } from "@/lib/site";
 
 /**
- * Uygulama henuz magazalarda degil. Calismayan magaza rozeti koymak yerine
- * durum acikca yaziliyor; yayina cikinca rozetler baglantiya cevrilir.
+ * App Store rozeti artik magaza sayfasina gidiyor. Google Play yayini
+ * bitmedigi icin o rozet hala baglantisiz: calismayan bir baglanti koymak
+ * yerine durum acikca yaziliyor.
  */
 export default function Indir() {
   return (
@@ -24,8 +25,8 @@ export default function Indir() {
             Bu hafta sonu kimlerle oynayacağını öğren.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted">
-            Sportner yakında App Store ve Google Play&apos;de. Çıktığı gün haberin
-            olsun istersen bize yaz, ilk sen bil.
+            Sportner App Store&apos;da yayında. Android sürümü yolda; çıktığı gün
+            haberin olsun istersen bize yaz.
           </p>
         </Beliren>
 
@@ -33,7 +34,8 @@ export default function Indir() {
           <div className="mt-11 flex flex-wrap items-center justify-center gap-4">
             <MagazaRozeti
               magaza="App Store"
-              ustSatir="Yakında"
+              ustSatir="İndir"
+              adres={site.appStore}
               simge={
                 <svg viewBox="0 0 24 24" fill="currentColor" className="size-7">
                   <path d="M16.36 12.63c-.02-2.3 1.88-3.4 1.97-3.46-1.07-1.57-2.74-1.79-3.34-1.81-1.42-.14-2.77.84-3.49.84-.72 0-1.83-.82-3-.8-1.55.02-2.97.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74s1.78.74 3 .72c1.24-.02 2.02-1.12 2.78-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.39-3.68ZM14.1 5.46c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.67 1.37-.58.67-1.09 1.76-.96 2.79 1.02.08 2.06-.51 2.69-1.26Z" />
@@ -70,13 +72,16 @@ function MagazaRozeti({
   magaza,
   ustSatir,
   simge,
+  adres,
 }: {
   magaza: string;
   ustSatir: string;
   simge: React.ReactNode;
+  /** Yoksa rozet baglantisiz durur: magazada henuz yayinda degil. */
+  adres?: string;
 }) {
-  return (
-    <div className="cam flex items-center gap-3.5 rounded-2xl px-6 py-3.5 text-left">
+  const icerik = (
+    <>
       <span className="text-muted">{simge}</span>
       <span className="flex flex-col leading-tight">
         <span className="text-[0.6875rem] uppercase tracking-[0.18em] text-lime">
@@ -86,6 +91,23 @@ function MagazaRozeti({
           {magaza}
         </span>
       </span>
-    </div>
+    </>
+  );
+
+  const sinif = "cam flex items-center gap-3.5 rounded-2xl px-6 py-3.5 text-left";
+
+  if (!adres) {
+    return <div className={sinif}>{icerik}</div>;
+  }
+
+  return (
+    <a
+      href={adres}
+      target="_blank"
+      rel="noopener"
+      className={`${sinif} transition-transform hover:-translate-y-0.5`}
+    >
+      {icerik}
+    </a>
   );
 }
