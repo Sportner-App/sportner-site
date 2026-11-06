@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Anybody, Hanken_Grotesk } from "next/font/google";
+import { Anybody, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import Baslik from "@/components/Baslik";
 import Altlik from "@/components/Altlik";
+import ImlecEfekti from "@/components/ImlecEfekti";
 import { site } from "@/lib/site";
 
 import "./globals.css";
@@ -20,6 +21,14 @@ const govde = Hanken_Grotesk({
   subsets: ["latin-ext"],
   weight: ["400", "500", "600", "700"],
   variable: "--yazi-body",
+  display: "swap",
+});
+
+/** Teknik etiketler ve sayaclar: "// 02.00" tarzi mono dil. */
+const mono = JetBrains_Mono({
+  subsets: ["latin-ext"],
+  weight: ["400", "500", "600"],
+  variable: "--yazi-mono",
   display: "swap",
 });
 
@@ -70,7 +79,13 @@ export default function KokDuzen({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="tr" className={`${display.variable} ${govde.variable}`}>
+    // data-insa-durum'u HeroInsaKapi betigi cizimden once yaziyor; React'in
+    // sunucu ciktisiyla farkini hata saymamasi icin uyari kapali.
+    <html
+      lang="tr"
+      className={`${display.variable} ${govde.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         {/*
           Google, "Sportner" aramasinda bu siteyi baska bir gelistiricinin ayni
@@ -133,6 +148,7 @@ export default function KokDuzen({
         <Baslik />
         <main id="icerik">{children}</main>
         <Altlik />
+        <ImlecEfekti />
       </body>
     </html>
   );

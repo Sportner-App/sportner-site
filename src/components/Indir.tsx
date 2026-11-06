@@ -1,4 +1,6 @@
 import Beliren from "./Beliren";
+import BolumUst from "./BolumUst";
+import InsaKatmani from "./InsaKatmani";
 import { site } from "@/lib/site";
 
 /**
@@ -19,12 +21,12 @@ export default function Indir() {
       />
 
       <div className="govde text-center">
+        <BolumUst no="06" ad="İndir" />
         <Beliren>
-          <p className="etiket">İndir</p>
-          <h2 className="baslik mx-auto mt-4 max-w-3xl text-[clamp(2.25rem,6.4vw,4.5rem)]">
-            Bu hafta sonu kimlerle oynayacağını öğren.
+          <h2 data-insa className="baslik mx-auto mt-14 max-w-4xl text-[clamp(2.5rem,7.4vw,5.5rem)]">
+            Bu hafta sonu <span className="text-lime">kimlerle</span> oynayacağını öğren.
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted">
+          <p data-insa className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted">
             Sportner App Store&apos;da yayında. Android sürümü yolda; çıktığı gün
             haberin olsun istersen bize yaz.
           </p>
@@ -53,7 +55,7 @@ export default function Indir() {
             />
           </div>
 
-          <p className="mt-8 text-[0.9375rem] text-soft">
+          <p data-insa className="mt-8 text-[0.9375rem] text-soft">
             Soru, öneri veya erken erişim için{" "}
             <a
               href={`mailto:${site.destekEposta}`}
@@ -64,6 +66,7 @@ export default function Indir() {
           </p>
         </Beliren>
       </div>
+      <InsaKatmani />
     </section>
   );
 }
@@ -84,7 +87,7 @@ function MagazaRozeti({
     <>
       <span className="text-muted">{simge}</span>
       <span className="flex flex-col leading-tight">
-        <span className="text-[0.6875rem] uppercase tracking-[0.18em] text-lime">
+        <span className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-lime">
           {ustSatir}
         </span>
         <span className="font-[family-name:var(--font-display)] text-lg font-semibold text-ink">
@@ -94,14 +97,20 @@ function MagazaRozeti({
     </>
   );
 
-  const sinif = "cam flex items-center gap-3.5 rounded-2xl px-6 py-3.5 text-left";
+  const sinif =
+    "koseli flex items-center gap-3.5 border border-line-strong bg-surface/60 px-6 py-3.5 text-left backdrop-blur-md";
 
   if (!adres) {
-    return <div className={sinif}>{icerik}</div>;
+    return (
+      <div data-insa="kutu" className={sinif}>
+        {icerik}
+      </div>
+    );
   }
 
   return (
     <a
+      data-insa="kutu"
       href={adres}
       target="_blank"
       rel="noopener"

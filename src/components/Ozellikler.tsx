@@ -1,6 +1,10 @@
 import Beliren from "./Beliren";
+import BolumUst from "./BolumUst";
+import InsaKatmani from "./InsaKatmani";
 
 type Ozellik = {
+  /** Kartin sag ustundeki mono kategori etiketi. */
+  etiket: string;
   baslik: string;
   metin: string;
   simge: React.ReactNode;
@@ -17,9 +21,9 @@ const cizgi = {
 
 const ozellikler: Ozellik[] = [
   {
+    etiket: "keşfet",
     baslik: "Konuma göre sıralı",
-    metin:
-      "Etkinlikler sana olan uzaklığa göre dizilir. Konum izni vermezsen şehir ve spor dalına göre gezmeye devam edersin.",
+    metin: "En yakın maç en üstte. Konum vermezsen şehre ve branşa göre gez.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" />
@@ -28,9 +32,9 @@ const ozellikler: Ozellik[] = [
     ),
   },
   {
+    etiket: "filtre",
     baslik: "Seviyene uygun",
-    metin:
-      "Her etkinlikte seviye ve yaş aralığı yazar. Yeni başlayan da ileri seviye de kendi maçını bulur.",
+    metin: "Her ilanda seviye ve yaş aralığı yazar. Yeni başlayan da ileri seviye de kendi maçını bulur.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <path d="M4 19V11m5 8V5m5 14v-6m5 6V8" />
@@ -38,9 +42,9 @@ const ozellikler: Ozellik[] = [
     ),
   },
   {
+    etiket: "organize",
     baslik: "Kendi etkinliğini aç",
-    metin:
-      "Mekânı seç, kontenjanı ve saati belirle, ilan et. Katılım talepleri onayına düşsün ya da doğrudan açık olsun.",
+    metin: "Mekân, saat, kontenjan — ilan et. Katılımı sen onayla ya da herkese aç.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <rect x="3.5" y="5" width="17" height="15" rx="3" />
@@ -49,9 +53,9 @@ const ozellikler: Ozellik[] = [
     ),
   },
   {
+    etiket: "sohbet",
     baslik: "Grup sohbeti",
-    metin:
-      "Her etkinliğin kendi sohbeti var. Saha değişikliği, forma rengi, kim geç kalıyor — hepsi tek yerde.",
+    metin: "Her etkinliğin kendi sohbeti var. Saha, forma rengi, geç kalan — hepsi orada.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <path d="M20 13.5a3.5 3.5 0 0 1-3.5 3.5H9l-4 3v-3H5a3.5 3.5 0 0 1-3.5-3.5v-6A3.5 3.5 0 0 1 5 4h11.5A3.5 3.5 0 0 1 20 7.5Z" />
@@ -59,9 +63,9 @@ const ozellikler: Ozellik[] = [
     ),
   },
   {
+    etiket: "itibar",
     baslik: "Oyuncu puanı ve rozetler",
-    metin:
-      "Katıldıkça profilin dolar. Birlikte oynadığın kişiler değerlendirir, kadroya girerken bu puan işine yarar.",
+    metin: "Oynadıkça profilin dolar. Birlikte oynadıkların puanlar; kadroya girerken işine yarar.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <path d="m12 3.6 2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.99 6.75 19.75l1-5.85L3.5 9.75l5.9-.85Z" />
@@ -69,9 +73,9 @@ const ozellikler: Ozellik[] = [
     ),
   },
   {
+    etiket: "güvenlik",
     baslik: "Güvende kal",
-    metin:
-      "Rahatsız eden kullanıcıyı engelle ya da şikâyet et. Engellenen kişi sana mesaj gönderemez, etkinliğine katılamaz.",
+    metin: "Rahatsız edeni engelle ya da şikâyet et. Engellenen sana yazamaz, etkinliğine giremez.",
     simge: (
       <svg viewBox="0 0 24 24" {...cizgi}>
         <path d="M12 3.2 5 6v6c0 4.2 2.9 7.4 7 8.8 4.1-1.4 7-4.6 7-8.8V6Z" />
@@ -83,23 +87,34 @@ const ozellikler: Ozellik[] = [
 
 export default function Ozellikler() {
   return (
-    <section id="ozellikler" className="govde py-24 md:py-32">
+    <section id="ozellikler" className="govde relative py-24 md:py-32">
+      <BolumUst no="04" ad="Özellikler" />
+
       <Beliren>
-        <p className="etiket">Neler yapabilirsin</p>
-        <h2 className="baslik mt-4 max-w-2xl text-[clamp(2rem,5.4vw,3.75rem)]">
-          Maçı kurmak, oynamaktan zor olmasın.
+        <h2 data-insa className="baslik mt-10 max-w-3xl text-[clamp(2.25rem,6.4vw,4.75rem)]">
+          Maçı kurmak, oynamaktan <span className="text-lime">zor olmasın.</span>
         </h2>
       </Beliren>
 
-      <ul className="mt-16 grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="koseli mt-16 grid gap-px border border-line-strong bg-line-strong sm:grid-cols-2 lg:grid-cols-3">
         {ozellikler.map((o, i) => (
           <li key={o.baslik} className="bg-bg">
             <Beliren gecikme={(i % 3) * 0.08} className="h-full">
-              <div className="group h-full bg-surface/45 p-8 transition-colors duration-500 hover:bg-surface md:p-10">
-                <span className="flex size-11 items-center justify-center rounded-xl border border-line-strong text-lime transition-transform duration-500 group-hover:scale-110">
-                  <span className="block size-6">{o.simge}</span>
-                </span>
-                <h3 className="mt-6 font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight text-ink">
+              <div data-insa="kutu" className="group relative h-full bg-surface/45 p-8 transition-colors duration-500 hover:bg-surface md:p-10">
+                {/* Hover'da ust kenardan cizilen lime kilavuz */}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-lime transition-transform duration-500 group-hover:scale-x-100"
+                />
+                <div className="flex items-start justify-between">
+                  <span className="flex size-11 items-center justify-center border border-line-strong text-lime transition-colors duration-500 group-hover:border-lime">
+                    <span className="block size-6">{o.simge}</span>
+                  </span>
+                  <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-soft">
+                    F-{String(i + 1).padStart(2, "0")} · {o.etiket}
+                  </span>
+                </div>
+                <h3 className="mt-8 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-ink">
                   {o.baslik}
                 </h3>
                 <p className="mt-3 leading-relaxed text-muted">{o.metin}</p>
@@ -108,6 +123,7 @@ export default function Ozellikler() {
           </li>
         ))}
       </ul>
+      <InsaKatmani />
     </section>
   );
 }

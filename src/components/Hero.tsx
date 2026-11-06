@@ -5,6 +5,7 @@ import { useRef } from "react";
 
 import { araDeger } from "@/lib/aradeger";
 import { useIlerlemeStili } from "@/lib/kaydirma";
+import InsaKatmani, { InsaKapi } from "@/components/InsaKatmani";
 
 /** Basligin kelime kelime maskeden yukari kaymasi icin bolunmus hali. */
 const satirlar = [
@@ -12,6 +13,12 @@ const satirlar = [
   ["bul,", "katıl,"],
   ["oynat."],
 ];
+
+const istatlar = [
+  ["35", "branş"],
+  ["1", "dokunuşla kadro"],
+  ["₺0", "ücretsiz"],
+] as const;
 
 export default function Hero() {
   const bolum = useRef<HTMLElement>(null);
@@ -34,11 +41,17 @@ export default function Hero() {
     el.style.opacity = String(araDeger(p, [0, 0.62], [1, 0]));
   });
 
+  const istatRef = useIlerlemeStili<HTMLDivElement>(scrollYProgress, (el, p) => {
+    el.style.opacity = String(araDeger(p, [0, 0.62], [1, 0]));
+  });
+
   const ipucuRef = useIlerlemeStili<HTMLDivElement>(scrollYProgress, (el, p) => {
     el.style.opacity = String(araDeger(p, [0, 0.62], [1, 0]));
   });
 
   return (
+    <>
+    <InsaKapi />
     <section
       ref={bolum}
       className="relative flex min-h-[38rem] items-center overflow-hidden"
@@ -80,18 +93,19 @@ export default function Hero() {
         className="govde relative pb-16 pt-24 [@media(min-height:820px)]:pb-28 [@media(min-height:820px)]:pt-28"
       >
         <motion.p
+          data-insa
           className="etiket"
           initial={azalt ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         >
-          Spor topluluğu
+          Spor topluluğu · 35 branş
         </motion.p>
 
         {/* Ust sinir ve kap genisligi birlikte secildi: "Şehrindeki sporu"
             tek satirda kalmali, yoksa baslik dort satira cikip hero'nun geri
             kalanini ekrandan tasiriyor. */}
-        <h1 className="baslik mt-5 max-w-5xl text-[clamp(2.6rem,8.4vw,6rem)]">
+        <h1 data-insa className="baslik mt-5 max-w-5xl text-[clamp(2.6rem,8.4vw,6rem)]">
           {satirlar.map((satir, s) => (
             <span key={s} className="block overflow-hidden pb-[0.08em]">
               {satir.map((kelime, k) => {
@@ -121,16 +135,18 @@ export default function Hero() {
         </h1>
 
         <motion.p
+          data-insa
           className="mt-8 max-w-lg text-lg leading-relaxed text-muted sm:text-xl"
           initial={azalt ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.62, ease: [0.16, 1, 0.3, 1] }}
         >
-          Halı saha, basketbol, koşu, voleybol, yoga… Yakınındaki etkinlikleri
-          haritada gör, seviyene uygun olanı seç, kadroya katıl.
+          Yakınındaki maçı bul. Kadroya tek dokunuşla gir.
+          <span className="text-ink"> Yalnız oynama.</span>
         </motion.p>
 
         <motion.div
+          data-insa
           className="mt-10 flex flex-wrap items-center gap-4"
           initial={azalt ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -170,6 +186,30 @@ export default function Hero() {
           />
         </motion.span>
       </div>
+
+      {/* Sayilar: dev rakamlar teknik bir kunyede. Dar ekranda gizli, cunku
+          100svh butcesi zaten icerik ve kaydirma ipucuyla dolu. */}
+      <div
+        ref={azalt ? undefined : istatRef}
+        data-insa
+        className="govde pointer-events-none absolute inset-x-0 bottom-8 hidden justify-end lg:flex"
+      >
+        <div className="koseli flex divide-x divide-line-strong border border-line-strong bg-bg/55 backdrop-blur-md">
+          {istatlar.map(([sayi, ad]) => (
+            <div key={ad} className="px-7 py-3.5">
+              <p className="font-[family-name:var(--font-display)] text-4xl font-bold leading-none tracking-tight text-ink">
+                {sayi}
+              </p>
+              <p className="mt-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-soft">
+                {ad}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <InsaKatmani kip="acilis" />
     </section>
+    </>
   );
 }

@@ -50,7 +50,7 @@ export default function Baslik() {
             <Link
               key={b.yol}
               href={b.yol}
-              className="text-[0.9375rem] text-muted transition-colors hover:text-ink"
+              className="font-mono text-[0.75rem] uppercase tracking-[0.18em] text-muted transition-colors hover:text-lime"
             >
               {b.ad}
             </Link>

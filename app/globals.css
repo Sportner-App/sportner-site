@@ -26,6 +26,7 @@
 
   --font-display: var(--yazi-display), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--yazi-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--yazi-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Apple'in urun sayfalarindaki gibi yumusak, gec biten gecis */
   --ease-yumusak: cubic-bezier(0.16, 1, 0.3, 1);
@@ -98,14 +99,54 @@ body {
   text-wrap: balance;
 }
 
-/* Bolum ustundeki kucuk lime etiket */
+/* Bolum ustundeki kucuk lime etiket: mono, "// " onekli teknik dil */
 @utility etiket {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-lime);
+
+  &::before {
+    content: "// ";
+    opacity: 0.55;
+  }
+}
+
+/* Kose isaretleri: tasarim araclarindaki secim cercevesi gibi, iki kosede lime L */
+@utility koseli {
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--color-lime);
+    pointer-events: none;
+  }
+
+  &::before {
+    top: -1px;
+    left: -1px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  &::after {
+    right: -1px;
+    bottom: -1px;
+    border-left: 0;
+    border-top: 0;
+  }
+}
+
+/* Ici bos, yalnizca konturlu dev yazi: buyuk rakamlar icin */
+@utility disyazi {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-lime);
 }
 
 /* Cam panel: uygulamadaki kartlarin web karsiligi */
@@ -325,4 +366,18 @@ body {
 @utility dolar {
   transform: scaleX(calc(var(--e) * var(--dolu, 1)));
   transform-origin: left center;
+}
+
+/* "Insa" efekti: isaretli bloklar imlecler yerine koyana dek gizli. Gizleme
+   visibility ile yapiliyor, cunku bloklarin opacity/transform'unu motion
+   kendisi yonetiyor. Betik ya da React hic calismazsa 30 sn sonra bloklar
+   kendiliginden acilir. */
+html[data-insa-aktif] [data-insa]:not([data-insa-hazir]) {
+  visibility: hidden;
+  animation: insa-acil 0s 30s forwards;
+}
+@keyframes insa-acil {
+  to {
+    visibility: visible;
+  }
 }

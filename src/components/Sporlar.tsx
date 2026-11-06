@@ -4,6 +4,8 @@ import { useReducedMotion, useScroll } from "motion/react";
 import { useRef } from "react";
 
 import Beliren from "./Beliren";
+import BolumUst from "./BolumUst";
+import InsaKatmani from "./InsaKatmani";
 import { araDeger } from "@/lib/aradeger";
 import { useIlerlemeStili } from "@/lib/kaydirma";
 
@@ -77,13 +79,22 @@ export default function Sporlar() {
   });
 
   return (
-    <section id="sporlar" ref={bolum} className="overflow-hidden py-24 md:py-32">
+    <section id="sporlar" ref={bolum} className="relative overflow-hidden py-24 md:py-32">
       <div className="govde">
+        <BolumUst no="05" ad="Branşlar" />
         <Beliren>
-          <p className="etiket">35 branş</p>
-          <h2 className="baslik mt-4 max-w-2xl text-[clamp(2rem,5.4vw,3.75rem)]">
-            Ne oynuyorsan burada bir kadro var.
-          </h2>
+          <div data-insa className="mt-10 flex flex-col gap-6 md:flex-row md:items-end md:gap-14">
+            {/* Dev konturlu rakam: bolumun tek cumlelik iddiasi */}
+            <p
+              aria-hidden
+              className="baslik disyazi text-[clamp(7rem,22vw,17rem)] leading-[0.8]"
+            >
+              35
+            </p>
+            <h2 className="baslik max-w-xl pb-2 text-[clamp(2rem,5.4vw,3.75rem)]">
+              Ne oynuyorsan burada bir <span className="text-lime">kadro</span> var.
+            </h2>
+          </div>
         </Beliren>
       </div>
 
@@ -100,7 +111,7 @@ export default function Sporlar() {
               {sira.map(([ad, renk]) => (
                 <li key={ad}>
                   <span
-                    className="flex items-center gap-2.5 whitespace-nowrap rounded-full border px-5 py-2.5 text-[0.9375rem] font-medium text-ink transition-colors duration-300"
+                    className="flex items-center gap-2.5 whitespace-nowrap rounded-sm border px-4 py-2.5 font-mono text-[0.8rem] font-medium uppercase tracking-[0.1em] text-ink transition-colors duration-300"
                     style={{
                       borderColor: `color-mix(in oklab, ${renk} 34%, transparent)`,
                       background: `color-mix(in oklab, ${renk} 9%, transparent)`,
@@ -108,7 +119,7 @@ export default function Sporlar() {
                   >
                     <span
                       aria-hidden
-                      className="block size-2 rounded-full"
+                      className="block size-1.5 rotate-45"
                       style={{ background: renk }}
                     />
                     {ad}
@@ -122,12 +133,13 @@ export default function Sporlar() {
 
       <div className="govde">
         <Beliren gecikme={0.1}>
-          <p className="mt-12 max-w-md leading-relaxed text-soft">
+          <p data-insa className="mt-12 max-w-md leading-relaxed text-soft">
             Aradığın branş listede yoksa kendi etkinliğini açarken yazman yeterli;
             katalog topluluktan gelen taleplerle büyüyor.
           </p>
         </Beliren>
       </div>
+      <InsaKatmani />
     </section>
   );
 }

@@ -3,6 +3,8 @@
 import { useReducedMotion, useScroll, type MotionValue } from "motion/react";
 import { useRef, type ReactNode } from "react";
 
+import BolumUst from "./BolumUst";
+import InsaKatmani from "./InsaKatmani";
 import Telefon from "./Telefon";
 import {
   EkranAkis,
@@ -100,10 +102,10 @@ export default function EkranAkisi() {
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
         <div className="govde grid w-full items-center gap-7 md:grid-cols-[1fr_auto] md:gap-16">
           {/* Metin sutunu */}
-          <div className="order-2 md:order-1">
-            <p className="etiket">Uygulamada</p>
+          <div data-insa className="order-2 md:order-1">
+            <BolumUst no="02" ad="Uygulamada" />
 
-            <div className="relative mt-5 min-h-[11.5rem]">
+            <div className="relative mt-6 min-h-[13rem]">
               {adimlar.map((adim, i) => (
                 <MetinKati
                   key={adim.anahtar}
@@ -121,6 +123,7 @@ export default function EkranAkisi() {
               icin telefon + metin 100svh'ye sigmali, yoksa alcak ekranlarda
               alt taraf kirpilir. */}
           <div
+            data-insa="kutu"
             className="relative order-1 mx-auto w-[min(50vw,13rem,24svh)] [perspective:1400px] md:order-2 md:w-[min(30vw,19rem,34svh)]"
           >
             {/* Aktif adimin renginde arka isik */}
@@ -147,6 +150,7 @@ export default function EkranAkisi() {
             </div>
           </div>
         </div>
+        <InsaKatmani />
       </div>
     </section>
   );
@@ -223,6 +227,9 @@ function MetinKati({
       className="absolute inset-x-0 top-0"
       style={{ opacity: sira === 0 ? 1 : 0 }}
     >
+      <p className="mb-4 font-mono text-xs tracking-[0.18em] text-lime">
+        [{String(sira + 1).padStart(2, "0")} / {String(ADET).padStart(2, "0")}]
+      </p>
       <h2 className="baslik max-w-lg text-[clamp(1.9rem,4.4vw,3.25rem)]">
         {adim.baslik}
       </h2>

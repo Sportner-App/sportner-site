@@ -3,6 +3,8 @@
 import { useReducedMotion, useScroll } from "motion/react";
 import { useRef } from "react";
 
+import BolumUst from "./BolumUst";
+import InsaKatmani from "./InsaKatmani";
 import { araDeger } from "@/lib/aradeger";
 import { useIlerlemeStili } from "@/lib/kaydirma";
 
@@ -71,12 +73,15 @@ export default function ParalaksBant({
       />
 
       <div className="govde relative">
-        <p className="etiket">{etiket}</p>
-        <h2 className="baslik mt-4 max-w-2xl text-[clamp(2rem,5.4vw,4rem)]">
+        <BolumUst no="03" ad={etiket} />
+        <h2 data-insa className="baslik mt-8 max-w-3xl text-[clamp(2.25rem,6vw,4.5rem)]">
           {baslik}
         </h2>
-        <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">{metin}</p>
+        <p data-insa className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
+          {metin}
+        </p>
       </div>
+      <InsaKatmani />
     </section>
   );
 }
