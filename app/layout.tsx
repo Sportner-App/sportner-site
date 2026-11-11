@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anybody, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 
-import Baslik from "@/components/Baslik";
-import Altlik from "@/components/Altlik";
-import ImlecEfekti from "@/components/ImlecEfekti";
 import { site } from "@/lib/site";
 
 import "./globals.css";
@@ -139,16 +136,7 @@ export default function KokDuzen({
             }),
           }}
         />
-        <a
-          href="#icerik"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-lime focus:px-5 focus:py-2.5 focus:font-semibold focus:text-bg"
-        >
-          İçeriğe geç
-        </a>
-        <Baslik />
-        <main id="icerik">{children}</main>
-        <Altlik />
-        <ImlecEfekti />
+        {children}
       </body>
     </html>
   );

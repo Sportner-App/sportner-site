@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import Altlik from "@/components/Altlik";
+import Baslik from "@/components/Baslik";
+
 import { yasalBaglantilar } from "@/lib/site";
 
 /**
@@ -8,6 +11,9 @@ import { yasalBaglantilar } from "@/lib/site";
  */
 export default function Bulunamadi() {
   return (
+    <>
+      <Baslik />
+      <main id="icerik">
     <section className="govde flex min-h-[70svh] flex-col justify-center py-32">
       <p className="etiket">404</p>
       <h1 className="baslik mt-4 max-w-2xl text-[clamp(2.25rem,6.4vw,4rem)]">
@@ -35,5 +41,8 @@ export default function Bulunamadi() {
         ))}
       </div>
     </section>
+      </main>
+      <Altlik />
+    </>
   );
 }
