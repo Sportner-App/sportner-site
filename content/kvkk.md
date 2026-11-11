@@ -124,6 +124,7 @@ Sağlayıcıların tamamının sunucuları yurt dışındadır:
 | Mapbox | Harita görüntüleme talebi | Harita altyapısı | Yurt dışı |
 | Resend | E-posta adresiniz | Doğrulama ve şifre sıfırlama e-postaları | Yurt dışı |
 | Expo | Cihaz bildirim jetonu | Anlık bildirim gönderimi | Yurt dışı |
+| Cloudflare | Bize yazdığınız e-postalar | Destek e-postalarının iletilmesi | Yurt dışı |
 
 Ayrıca yetkili kamu kurum ve kuruluşlarına, yalnızca mevzuatın gerektirdiği
 hâllerde ve gerektirdiği ölçüde aktarım yapılabilir.

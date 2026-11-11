@@ -109,6 +109,7 @@ Hepsinin sunucuları **yurt dışındadır**:
 | Mapbox | Harita | Harita görüntüleme talebi |
 | Resend | E-posta gönderimi | E-posta adresin |
 | Expo | Anlık bildirim | Cihaz bildirim jetonun |
+| Cloudflare | Destek e-postası yönlendirme | Bize yazdığın e-postalar |
 
 Ayrıca yalnızca mevzuatın gerektirdiği hâllerde ve gerektirdiği ölçüde yetkili
 kamu kurumlarıyla paylaşım yapılabilir.
