@@ -427,7 +427,7 @@ function Kullanicilar() {
   );
 }
 
-function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
+function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
   const [detay, setDetay] = useState<KullaniciDetay | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const [banAcik, setBanAcik] = useState(false);
@@ -494,11 +494,13 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
   return (
     <section>
       {onayPenceresi}
-      <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
-        ← Kullanıcılar
-      </button>
+      {onGeri ? (
+        <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
+          ← Kullanıcılar
+        </button>
+      ) : null}
 
-      <div className="mt-4">
+      <div className={onGeri ? "mt-4" : ""}>
         <Hata metin={hata} />
       </div>
 
@@ -859,10 +861,28 @@ function GeriBildirimKarti({ item, onDegisti }: { item: GeriBildirim; onDegisti:
 
 // ---------------------------------------------------------------- İşlem kaydı
 
+const GERI_BILDIRIM_DURUM_ADI: Record<string, string> = { New: "Yeni", Read: "Okundu", Resolved: "Çözüldü" };
+
+/** Kayıttaki serbest metnin işleme göre anlamı: ban gerekçesi, yeni durum... */
+function detayEtiketi(kayit: IslemKaydi): { ad: string; deger: string } | null {
+  if (!kayit.details) return null;
+  if (kayit.action === "user.ban") return { ad: "Ban gerekçesi", deger: kayit.details };
+  if (kayit.action === "feedback.status")
+    return { ad: "Yeni durum", deger: GERI_BILDIRIM_DURUM_ADI[kayit.details] ?? kayit.details };
+  return { ad: "Not", deger: kayit.details };
+}
+
+function islemRengi(action: string): string {
+  if (action === "user.ban" || action === "user.remove_avatar") return "bg-basketbol";
+  if (action === "user.unban") return "bg-lime";
+  return "bg-tenis";
+}
+
 function IslemKaydiListesi() {
   const [sayfaNo, setSayfaNo] = useState(1);
   const [sayfa, setSayfa] = useState<Sayfa<IslemKaydi> | null>(null);
   const [hata, setHata] = useState<string | null>(null);
+  const [secili, setSecili] = useState<IslemKaydi | null>(null);
 
   useEffect(() => {
     istek<Sayfa<IslemKaydi>>(`/api/admin/audit?page=${sayfaNo}&pageSize=50`)
@@ -870,22 +890,118 @@ function IslemKaydiListesi() {
       .catch((error: unknown) => setHata(mesaj(error)));
   }, [sayfaNo]);
 
+  if (secili) {
+    return <IslemDetayi kayit={secili} onGeri={() => setSecili(null)} />;
+  }
+
   return (
     <section>
       <Hata metin={hata} />
-      <ul className="divide-y divide-line">
-        {sayfa?.items.map((kayit) => (
-          <li key={kayit.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3 text-sm">
-            <span className="w-40 shrink-0 font-mono text-xs text-soft">{tarih(kayit.createdAt)}</span>
-            <span className="font-semibold">@{kayit.actorUsername ?? kayit.actorUserId.slice(0, 8)}</span>
-            <span className="text-muted">{ISLEM_ADLARI[kayit.action] ?? kayit.action}</span>
-            {kayit.targetLabel ? <span>@{kayit.targetLabel}</span> : null}
-            {kayit.details ? <span className="basis-full pl-0 text-soft sm:pl-[10.75rem]">“{kayit.details}”</span> : null}
-          </li>
-        ))}
-      </ul>
-      {sayfa && sayfa.items.length === 0 ? <p className="py-10 text-center text-muted">Henüz işlem yok.</p> : null}
+      <div className="overflow-hidden rounded-3xl border border-line bg-surface">
+        <ul className="divide-y divide-line">
+          {sayfa?.items.map((kayit) => {
+            const detay = detayEtiketi(kayit);
+            return (
+              <li key={kayit.id}>
+                <button
+                  type="button"
+                  onClick={() => setSecili(kayit)}
+                  className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-2"
+                >
+                  <span className={`size-2 shrink-0 rounded-full ${islemRengi(kayit.action)}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm">
+                      <span className="font-semibold">@{kayit.actorUsername ?? kayit.actorUserId.slice(0, 8)}</span>{" "}
+                      <span className="text-muted">{ISLEM_ADLARI[kayit.action] ?? kayit.action}</span>
+                      {kayit.targetLabel ? <span className="font-semibold"> · @{kayit.targetLabel}</span> : null}
+                    </span>
+                    {detay ? (
+                      <span className="mt-0.5 block truncate text-xs text-soft">
+                        {detay.ad}: {detay.deger}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0 text-xs text-soft" title={tarih(kayit.createdAt)}>
+                    {gorece(kayit.createdAt)}
+                  </span>
+                  <span className="shrink-0 text-soft transition-colors group-hover:text-lime">→</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {sayfa && sayfa.items.length === 0 ? <p className="py-10 text-center text-muted">Henüz işlem yok.</p> : null}
+      </div>
       {sayfa ? <Sayfalama sayfa={sayfa} onDegis={setSayfaNo} /> : null}
+    </section>
+  );
+}
+
+function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void }) {
+  const [geriBildirim, setGeriBildirim] = useState<GeriBildirim | null>(null);
+  const [hata, setHata] = useState<string | null>(null);
+  const detay = detayEtiketi(kayit);
+  const geriBildirimMi = kayit.targetType === "feedback";
+
+  const geriBildirimiYukle = useCallback(async () => {
+    try {
+      setGeriBildirim(await istek<GeriBildirim>(`/api/admin/feedback/${kayit.targetId}`));
+    } catch (error) {
+      setHata(mesaj(error));
+    }
+  }, [kayit.targetId]);
+
+  useEffect(() => {
+    if (geriBildirimMi) void geriBildirimiYukle();
+  }, [geriBildirimMi, geriBildirimiYukle]);
+
+  return (
+    <section>
+      <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
+        ← İşlem kaydı
+      </button>
+
+      <div className="mt-4 overflow-hidden rounded-3xl border border-line bg-surface">
+        <div className={`h-1 w-full ${islemRengi(kayit.action)}`} />
+        <div className="p-6">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-soft">İşlem</p>
+          <h2 className="mt-1 font-display text-xl font-bold">{ISLEM_ADLARI[kayit.action] ?? kayit.action}</h2>
+          <dl className="mt-5 grid gap-4 sm:grid-cols-3">
+            <Bilgi ad="Yapan" deger={`@${kayit.actorUsername ?? kayit.actorUserId}`} />
+            <Bilgi
+              ad="Hedef"
+              deger={
+                kayit.targetLabel
+                  ? `@${kayit.targetLabel}`
+                  : geriBildirimMi
+                    ? "Geri bildirim"
+                    : kayit.targetId
+              }
+            />
+            <Bilgi ad="Zaman" deger={`${tarih(kayit.createdAt)} (${gorece(kayit.createdAt)})`} />
+          </dl>
+          {detay ? (
+            <div className="mt-5 rounded-2xl border border-line bg-surface-2 p-4">
+              <p className="text-xs font-semibold text-soft">{detay.ad}</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm">{detay.deger}</p>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <h3 className="mb-3 mt-8 font-mono text-xs uppercase tracking-[0.18em] text-soft">
+        {geriBildirimMi ? "İlgili geri bildirim" : "İlgili kullanıcı"}
+      </h3>
+      {geriBildirimMi ? (
+        <>
+          <Hata metin={hata} />
+          {geriBildirim ? (
+            <GeriBildirimKarti item={geriBildirim} onDegisti={() => void geriBildirimiYukle()} />
+          ) : null}
+        </>
+      ) : (
+        <KullaniciDetayi id={kayit.targetId} />
+      )}
     </section>
   );
 }
