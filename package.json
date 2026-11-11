@@ -10,7 +10,7 @@
     "gorseller": "node tools/gorselleri-hazirla.mjs"
   },
   "dependencies": {
-    "motion": "^12.23.12",
+    "motion": "^14.10.1",
     "next": "^15.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
