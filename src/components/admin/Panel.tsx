@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   ApiHatasi,
+  gorece,
   GERI_BILDIRIM_DURUMU,
   ISLEM_ADLARI,
   KULLANICI_DURUMU,
@@ -21,6 +22,8 @@ import {
   type Oturum,
   type Sayfa,
 } from "@/lib/admin/api";
+
+import { useOnay } from "./Onay";
 
 type Sekme = "kullanicilar" | "geri-bildirim" | "kayit";
 
@@ -78,42 +81,54 @@ export default function Panel() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-        <div className="flex items-center gap-3">
-          <span className="font-display text-lg font-bold tracking-wide">SPORTNER</span>
-          <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-muted">
-            yönetim
-          </span>
+    <div className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+      <header className="sticky top-0 z-40 -mx-4 border-b border-line bg-bg/80 px-4 backdrop-blur-xl backdrop-saturate-150 sm:-mx-6 sm:px-6">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Marka />
+          <button
+            type="button"
+            onClick={() => void cikis()}
+            className="rounded-full border border-line px-4 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-ink"
+          >
+            Çıkış
+          </button>
         </div>
-        <nav className="flex flex-wrap items-center gap-1">
+        <nav className="-mb-px flex gap-6 overflow-x-auto">
           {SEKMELER.map((s) => (
             <button
               key={s.id}
               type="button"
               onClick={() => setSekme(s.id)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                sekme === s.id ? "bg-lime text-bg" : "text-muted hover:text-ink"
+              className={`shrink-0 border-b-2 pb-3 pt-1 text-sm font-semibold transition-colors ${
+                sekme === s.id ? "border-lime text-ink" : "border-transparent text-soft hover:text-muted"
               }`}
             >
               {s.ad}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => void cikis()}
-            className="ml-2 rounded-full px-4 py-2 text-sm text-soft hover:text-ink"
-          >
-            Çıkış
-          </button>
         </nav>
       </header>
 
-      <div className="pt-6">
+      <div className="pt-8">
         {sekme === "kullanicilar" ? <Kullanicilar /> : null}
         {sekme === "geri-bildirim" ? <GeriBildirimler /> : null}
         {sekme === "kayit" ? <IslemKaydiListesi /> : null}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Marka
+
+function Marka() {
+  return (
+    <div className="flex items-center gap-2.5">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="" width={28} height={28} className="size-7" />
+      <span className="font-display text-[0.95rem] font-bold uppercase tracking-[0.28em]">Sportner</span>
+      <span className="ml-1 rounded-md bg-lime/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-lime ring-1 ring-lime/25">
+        Yönetim
+      </span>
     </div>
   );
 }
@@ -160,10 +175,10 @@ function Giris({ onGiris }: { onGiris: () => void }) {
     <div className="grid min-h-svh place-items-center px-4">
       <form
         onSubmit={adim === "eposta" ? kodIste : dogrula}
-        className="w-full max-w-sm rounded-3xl border border-line bg-surface p-7"
+        className="w-full max-w-sm rounded-3xl border border-line bg-surface p-7 shadow-[0_30px_80px_-30px_rgba(204,255,0,0.15)]"
       >
-        <p className="font-mono text-xs text-soft">sportner / yönetim</p>
-        <h1 className="mt-2 font-display text-2xl font-bold">Panele giriş</h1>
+        <Marka />
+        <h1 className="mt-7 font-display text-2xl font-bold">Panele giriş</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           {adim === "eposta"
             ? "Yönetici hesabının e-postasını yaz, giriş kodu gönderelim."
@@ -223,13 +238,14 @@ function Giris({ onGiris }: { onGiris: () => void }) {
 
 // ---------------------------------------------------------------- Ortak parçalar
 
-function Avatar({ url, ad }: { url: string | null; ad: string }) {
+function Avatar({ url, ad, buyuk = false }: { url: string | null; ad: string; buyuk?: boolean }) {
+  const boyut = buyuk ? "h-16 w-16 text-xl" : "h-10 w-10 text-sm";
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarımda next/image optimize etmiyor
-    return <img src={url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />;
+    return <img src={url} alt="" className={`${boyut} shrink-0 rounded-full object-cover ring-1 ring-line`} />;
   }
   return (
-    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-semibold text-muted">
+    <span className={`${boyut} grid shrink-0 place-items-center rounded-full bg-surface-2 font-semibold text-muted ring-1 ring-line`}>
       {(ad.trim()[0] ?? "?").toLocaleUpperCase("tr-TR")}
     </span>
   );
@@ -267,6 +283,16 @@ function Sayfalama({
         </button>
       </div>
     </div>
+  );
+}
+
+function DurumRozeti({ durum }: { durum: number }) {
+  const bilgi = KULLANICI_DURUMU[durum];
+  return (
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${bilgi?.rozet ?? ""}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {bilgi?.ad ?? durum}
+    </span>
   );
 }
 
@@ -328,8 +354,8 @@ function Kullanicilar() {
         <input
           value={arama}
           onChange={(event) => setArama(event.target.value)}
-          placeholder="Kullanıcı adı, isim, e-posta ya da ID"
-          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-4 py-2.5 outline-none focus:border-lime"
+          placeholder="Kullanıcı adı, isim, e-posta ya da ID ara"
+          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-5 py-2.5 outline-none transition-colors placeholder:text-soft focus:border-lime"
         />
         <select
           value={durum}
@@ -337,7 +363,7 @@ function Kullanicilar() {
             setSayfaNo(1);
             setDurum(event.target.value);
           }}
-          className="rounded-xl border border-line bg-surface px-3 py-2.5"
+          className="rounded-full border border-line bg-surface px-4 py-2.5 text-sm"
         >
           <option value="">Tüm durumlar</option>
           {Object.entries(KULLANICI_DURUMU).map(([deger, { ad }]) => (
@@ -346,7 +372,7 @@ function Kullanicilar() {
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded-xl bg-lime px-5 py-2.5 font-semibold text-bg">
+        <button type="submit" className="rounded-full bg-lime px-6 py-2.5 font-semibold text-bg transition-transform hover:scale-[1.03]">
           Ara
         </button>
       </form>
@@ -355,36 +381,47 @@ function Kullanicilar() {
         <Hata metin={hata} />
       </div>
 
-      <ul className="mt-2 divide-y divide-line">
-        {sayfa?.items.map((kullanici) => {
-          const ad = [kullanici.firstName, kullanici.lastName].filter(Boolean).join(" ");
-          const durumBilgisi = KULLANICI_DURUMU[kullanici.status];
-          return (
-            <li key={kullanici.id}>
-              <button
-                type="button"
-                onClick={() => setSecili(kullanici.id)}
-                className="flex w-full items-center gap-3 py-3 text-left hover:bg-surface/60"
-              >
-                <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold">
-                    {kullanici.username ? `@${kullanici.username}` : "Profil yok"}
-                    {ad ? <span className="font-normal text-muted"> · {ad}</span> : null}
+      <div className="mt-3 overflow-hidden rounded-3xl border border-line bg-surface">
+        <div className="hidden grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_10rem_7rem_7rem] gap-4 border-b border-line px-5 py-3 font-mono text-[0.68rem] uppercase tracking-[0.16em] text-soft md:grid">
+          <span>Kullanıcı</span>
+          <span>E-posta</span>
+          <span>Durum</span>
+          <span>Kayıt</span>
+          <span>Son görülme</span>
+        </div>
+        <ul className="divide-y divide-line">
+          {sayfa?.items.map((kullanici) => {
+            const ad = [kullanici.firstName, kullanici.lastName].filter(Boolean).join(" ");
+            return (
+              <li key={kullanici.id}>
+                <button
+                  type="button"
+                  onClick={() => setSecili(kullanici.id)}
+                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-surface-2/60 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_10rem_7rem_7rem]"
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} />
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold transition-colors group-hover:text-lime">
+                        {kullanici.username ? `@${kullanici.username}` : "Profil yok"}
+                      </span>
+                      <span className="block truncate text-sm text-soft">{ad || "İsim yok"}</span>
+                    </span>
                   </span>
-                  <span className="block truncate text-sm text-soft">{kullanici.email ?? "E-posta yok"}</span>
-                </span>
-                <span className="hidden shrink-0 text-right text-xs text-soft sm:block">
-                  <span className={`block font-semibold ${durumBilgisi?.sinif ?? ""}`}>{durumBilgisi?.ad}</span>
-                  {tarih(kullanici.createdAt)}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  <span className="hidden truncate text-sm text-muted md:block">{kullanici.email ?? "—"}</span>
+                  <span>
+                    <DurumRozeti durum={kullanici.status} />
+                  </span>
+                  <span className="hidden text-sm text-muted md:block">{gorece(kullanici.createdAt)}</span>
+                  <span className="hidden text-sm text-muted md:block">{gorece(kullanici.lastSeenAt)}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {sayfa && sayfa.items.length === 0 ? <p className="py-14 text-center text-muted">Sonuç yok.</p> : null}
+      </div>
 
-      {sayfa && sayfa.items.length === 0 ? <p className="py-10 text-center text-muted">Sonuç yok.</p> : null}
       {sayfa ? <Sayfalama sayfa={sayfa} onDegis={setSayfaNo} /> : null}
     </section>
   );
@@ -397,6 +434,7 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
   const [sebep, setSebep] = useState("");
   const [fotoSil, setFotoSil] = useState(true);
   const [bekliyor, setBekliyor] = useState(false);
+  const [onayIste, onayPenceresi] = useOnay();
 
   const yukle = useCallback(async () => {
     setHata(null);
@@ -430,7 +468,12 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
   };
 
   const baniKaldir = async () => {
-    if (!window.confirm("Banı kaldırınca kullanıcı tekrar giriş yapabilir. Devam edilsin mi?")) {
+    const onay = await onayIste({
+      baslik: "Ban kaldırılsın mı?",
+      metin: `@${detay?.user.username ?? "kullanıcı"} tekrar giriş yapıp uygulamayı kullanabilecek.`,
+      onayAd: "Banı kaldır",
+    });
+    if (!onay) {
       return;
     }
     setBekliyor(true);
@@ -447,10 +490,10 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
 
   const kullanici = detay?.user;
   const ad = kullanici ? [kullanici.firstName, kullanici.lastName].filter(Boolean).join(" ") : "";
-  const durumBilgisi = kullanici ? KULLANICI_DURUMU[kullanici.status] : undefined;
 
   return (
     <section>
+      {onayPenceresi}
       <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
         ← Kullanıcılar
       </button>
@@ -463,15 +506,15 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri: () => void }) {
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="rounded-3xl border border-line bg-surface p-6">
             <div className="flex items-center gap-4">
-              <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} />
+              <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} buyuk />
               <div className="min-w-0">
                 <h2 className="truncate font-display text-xl font-bold">
                   {kullanici.username ? `@${kullanici.username}` : "Profil yok"}
                 </h2>
                 <p className="truncate text-muted">{ad || "İsim yok"}</p>
               </div>
-              <span className={`ml-auto shrink-0 font-semibold ${durumBilgisi?.sinif ?? ""}`}>
-                {durumBilgisi?.ad}
+              <span className="ml-auto shrink-0">
+                <DurumRozeti durum={kullanici.status} />
               </span>
             </div>
 
@@ -660,6 +703,7 @@ function GeriBildirimKarti({ item, onDegisti }: { item: GeriBildirim; onDegisti:
   );
   const [bekliyor, setBekliyor] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
+  const [onayIste, onayPenceresi] = useOnay();
 
   const durumYap = async (durum: number) => {
     setBekliyor(true);
@@ -678,7 +722,17 @@ function GeriBildirimKarti({ item, onDegisti }: { item: GeriBildirim; onDegisti:
   };
 
   const gonder = async () => {
-    if (!window.confirm(`Yanıt ${item.email} adresine e-postayla gönderilecek. Gönderilsin mi?`)) {
+    const onay = await onayIste({
+      baslik: "Yanıt gönderilsin mi?",
+      metin: (
+        <>
+          Yanıt <span className="font-semibold text-ink">{item.email}</span> adresine e-postayla gidecek ve geri
+          bildirim çözüldü olarak işaretlenecek.
+        </>
+      ),
+      onayAd: "Gönder",
+    });
+    if (!onay) {
       return;
     }
     setBekliyor(true);
@@ -699,6 +753,7 @@ function GeriBildirimKarti({ item, onDegisti }: { item: GeriBildirim; onDegisti:
 
   return (
     <article className="rounded-3xl border border-line bg-surface p-5">
+      {onayPenceresi}
       <header className="flex items-center gap-3">
         <Avatar url={item.profileImageUrl} ad={item.firstName ?? item.username ?? "?"} />
         <div className="min-w-0 flex-1">

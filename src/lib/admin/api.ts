@@ -141,12 +141,12 @@ export type Sayfa<T> = {
 };
 
 /** API'deki UserStatus sayıları. */
-export const KULLANICI_DURUMU: Record<number, { ad: string; sinif: string }> = {
-  0: { ad: "Doğrulama bekliyor", sinif: "text-soft" },
-  1: { ad: "Aktif", sinif: "text-lime" },
-  2: { ad: "Askıda", sinif: "text-tenis" },
-  3: { ad: "Banlı", sinif: "text-basketbol" },
-  4: { ad: "Silinmiş", sinif: "text-soft" },
+export const KULLANICI_DURUMU: Record<number, { ad: string; sinif: string; rozet: string }> = {
+  0: { ad: "Doğrulama bekliyor", sinif: "text-soft", rozet: "bg-soft/10 text-muted ring-soft/25" },
+  1: { ad: "Aktif", sinif: "text-lime", rozet: "bg-lime/10 text-lime ring-lime/25" },
+  2: { ad: "Askıda", sinif: "text-tenis", rozet: "bg-tenis/10 text-tenis ring-tenis/25" },
+  3: { ad: "Banlı", sinif: "text-basketbol", rozet: "bg-basketbol/10 text-basketbol ring-basketbol/30" },
+  4: { ad: "Silinmiş", sinif: "text-soft", rozet: "bg-soft/10 text-soft ring-soft/20" },
 };
 
 export type KullaniciOzet = {
@@ -230,4 +230,20 @@ export function tarih(deger: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(deger));
+}
+
+/** "3 dk önce", "2 gün önce" gibi kısa göreli zaman; bir aydan eskisi tarih olarak. */
+export function gorece(deger: string | null): string {
+  if (!deger) {
+    return "—";
+  }
+  const saniye = Math.round((Date.now() - new Date(deger).getTime()) / 1000);
+  if (saniye < 60) return "az önce";
+  const dakika = Math.round(saniye / 60);
+  if (dakika < 60) return `${dakika} dk önce`;
+  const saat = Math.round(dakika / 60);
+  if (saat < 24) return `${saat} sa önce`;
+  const gun = Math.round(saat / 24);
+  if (gun < 30) return `${gun} gün önce`;
+  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(deger));
 }
