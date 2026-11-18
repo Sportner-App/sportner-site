@@ -25,23 +25,39 @@ import {
 
 import { useOnay } from "./Onay";
 import { Avatar, Bilgi, Hata, mesaj, Sayfalama } from "./ortak";
+import { Duyuru } from "./Duyuru";
+import { Etkinlikler } from "./Etkinlikler";
+import { Kulupler } from "./Kulupler";
+import { Oturumlar, SikayetGecmisi } from "./KullaniciEkleri";
+import { Ozet } from "./Ozet";
 import { IcerikBolumu, Sikayetler } from "./Sikayetler";
 
-type Sekme = "kullanicilar" | "sikayetler" | "geri-bildirim" | "kayit";
+type Sekme = "ozet" | "kullanicilar" | "sikayetler" | "etkinlikler" | "kulupler" | "geri-bildirim" | "duyuru" | "kayit";
 
 const SEKMELER: { id: Sekme; ad: string }[] = [
+  { id: "ozet", ad: "Özet" },
   { id: "kullanicilar", ad: "Kullanıcılar" },
   { id: "sikayetler", ad: "Şikâyetler" },
+  { id: "etkinlikler", ad: "Etkinlikler" },
+  { id: "kulupler", ad: "Kulüpler" },
   { id: "geri-bildirim", ad: "Geri bildirimler" },
+  { id: "duyuru", ad: "Duyuru" },
   { id: "kayit", ad: "İşlem kaydı" },
 ];
 
 export default function Panel() {
   const [hazir, setHazir] = useState(false);
   const [girisli, setGirisli] = useState(false);
-  const [sekme, setSekme] = useState<Sekme>("kullanicilar");
-  // Şikâyetler sekmesinden "Sahibine git" ile açılan kullanıcı; sekme değişince kapanır.
+  const [sekme, setSekme] = useState<Sekme>("ozet");
+  // Şikâyetler/Etkinlikler/Kulüpler sekmelerinden açılan kullanıcı detayı; sekme değişince kapanır.
   const [sikayetKullanicisi, setSikayetKullanicisi] = useState<string | null>(null);
+  // Kulüp detayındaki bir etkinliği Etkinlikler sekmesinde açmak için.
+  const [acilacakEtkinlik, setAcilacakEtkinlik] = useState<string | null>(null);
+
+  const sekmeyeGec = (yeni: Sekme) => {
+    setSekme(yeni);
+    setSikayetKullanicisi(null);
+  };
 
   useEffect(() => {
     const dustu = () => setGirisli(false);
@@ -100,8 +116,8 @@ export default function Panel() {
               key={s.id}
               type="button"
               onClick={() => {
-                setSekme(s.id);
-                setSikayetKullanicisi(null);
+                setAcilacakEtkinlik(null);
+                sekmeyeGec(s.id);
               }}
               className={`shrink-0 border-b-2 pb-3 pt-1 text-sm font-semibold transition-colors ${
                 sekme === s.id ? "border-lime text-ink" : "border-transparent text-soft hover:text-muted"
@@ -115,14 +131,11 @@ export default function Panel() {
 
       <div className="pt-8">
         {sekme === "kullanicilar" ? <Kullanicilar /> : null}
+        {sekme === "ozet" ? <Ozet onSekme={sekmeyeGec} /> : null}
         {sekme === "sikayetler" ? (
           <>
             {sikayetKullanicisi ? (
-              <KullaniciDetayi
-                id={sikayetKullanicisi}
-                onGeri={() => setSikayetKullanicisi(null)}
-                geriAd="Şikâyetler"
-              />
+              <KullaniciDetayi id={sikayetKullanicisi} onGeri={() => setSikayetKullanicisi(null)} geriAd="Şikâyetler" />
             ) : null}
             {/* Liste açık kalır (gizlenir) ki geri dönünce filtre ve sayfa korunsun. */}
             <div className={sikayetKullanicisi ? "hidden" : ""}>
@@ -130,7 +143,42 @@ export default function Panel() {
             </div>
           </>
         ) : null}
+        {sekme === "etkinlikler" ? (
+          <>
+            {sikayetKullanicisi ? (
+              <KullaniciDetayi
+                id={sikayetKullanicisi}
+                onGeri={() => setSikayetKullanicisi(null)}
+                geriAd="Etkinlikler"
+              />
+            ) : null}
+            <div className={sikayetKullanicisi ? "hidden" : ""}>
+              <Etkinlikler
+                onKullanici={setSikayetKullanicisi}
+                acilisId={acilacakEtkinlik}
+                onAcildi={() => setAcilacakEtkinlik(null)}
+              />
+            </div>
+          </>
+        ) : null}
+        {sekme === "kulupler" ? (
+          <>
+            {sikayetKullanicisi ? (
+              <KullaniciDetayi id={sikayetKullanicisi} onGeri={() => setSikayetKullanicisi(null)} geriAd="Kulüpler" />
+            ) : null}
+            <div className={sikayetKullanicisi ? "hidden" : ""}>
+              <Kulupler
+                onKullanici={setSikayetKullanicisi}
+                onEtkinlik={(id) => {
+                  setAcilacakEtkinlik(id);
+                  sekmeyeGec("etkinlikler");
+                }}
+              />
+            </div>
+          </>
+        ) : null}
         {sekme === "geri-bildirim" ? <GeriBildirimler /> : null}
+        {sekme === "duyuru" ? <Duyuru /> : null}
         {sekme === "kayit" ? <IslemKaydiListesi /> : null}
       </div>
     </div>
@@ -180,7 +228,10 @@ function Giris({ onGiris }: { onGiris: () => void }) {
     setBekliyor(true);
     setHata(null);
     try {
-      const oturum = await girisIstegi<Oturum>("/api/admin/auth/verify", { email: eposta, code: kod });
+      const oturum = await girisIstegi<Oturum>("/api/admin/auth/verify", {
+        email: eposta,
+        code: kod,
+      });
       oturumuYaz(oturum);
       onGiris();
     } catch (error) {
@@ -260,7 +311,9 @@ function Giris({ onGiris }: { onGiris: () => void }) {
 function DurumRozeti({ durum }: { durum: number }) {
   const bilgi = KULLANICI_DURUMU[durum];
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${bilgi?.rozet ?? ""}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${bilgi?.rozet ?? ""}`}
+    >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
       {bilgi?.ad ?? durum}
     </span>
@@ -280,7 +333,10 @@ function Kullanicilar() {
 
   const yukle = useCallback(async () => {
     setHata(null);
-    const parametre = new URLSearchParams({ page: String(sayfaNo), pageSize: "25" });
+    const parametre = new URLSearchParams({
+      page: String(sayfaNo),
+      pageSize: "25",
+    });
     if (uygulanan) parametre.set("search", uygulanan);
     if (durum) parametre.set("status", durum);
     try {
@@ -337,7 +393,10 @@ function Kullanicilar() {
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded-full bg-lime px-6 py-2.5 font-semibold text-bg transition-transform hover:scale-[1.03]">
+        <button
+          type="submit"
+          className="rounded-full bg-lime px-6 py-2.5 font-semibold text-bg transition-transform hover:scale-[1.03]"
+        >
           Ara
         </button>
       </form>
@@ -392,13 +451,23 @@ function Kullanicilar() {
   );
 }
 
-function KullaniciDetayi({ id, onGeri, geriAd = "Kullanıcılar" }: { id: string; onGeri?: () => void; geriAd?: string }) {
+function KullaniciDetayi({
+  id,
+  onGeri,
+  geriAd = "Kullanıcılar",
+}: {
+  id: string;
+  onGeri?: () => void;
+  geriAd?: string;
+}) {
   const [detay, setDetay] = useState<KullaniciDetay | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const [banAcik, setBanAcik] = useState(false);
   const [sebep, setSebep] = useState("");
   const [fotoSil, setFotoSil] = useState(true);
   const [bekliyor, setBekliyor] = useState(false);
+  // Şikâyet geçmişindeki bir kişiye tıklanınca ikinci bir detay açılır; bu detay gizli kalıp durumunu korur.
+  const [digerId, setDigerId] = useState<string | null>(null);
   const [onayIste, onayPenceresi] = useOnay();
 
   const yukle = useCallback(async () => {
@@ -420,7 +489,10 @@ function KullaniciDetayi({ id, onGeri, geriAd = "Kullanıcılar" }: { id: string
     try {
       await istek<void>(`/api/admin/users/${id}/ban`, {
         method: "POST",
-        body: JSON.stringify({ reason: sebep.trim() || null, removeAvatar: fotoSil }),
+        body: JSON.stringify({
+          reason: sebep.trim() || null,
+          removeAvatar: fotoSil,
+        }),
       });
       setBanAcik(false);
       setSebep("");
@@ -487,150 +559,164 @@ function KullaniciDetayi({ id, onGeri, geriAd = "Kullanıcılar" }: { id: string
   const ad = kullanici ? [kullanici.firstName, kullanici.lastName].filter(Boolean).join(" ") : "";
 
   return (
-    <section>
-      {onayPenceresi}
-      {onGeri ? (
-        <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
-          ← {geriAd}
-        </button>
+    <>
+      {digerId ? (
+        <KullaniciDetayi
+          id={digerId}
+          onGeri={() => setDigerId(null)}
+          geriAd={kullanici?.username ? `@${kullanici.username}` : "Önceki kullanıcı"}
+        />
       ) : null}
+      <section className={digerId ? "hidden" : ""}>
+        {onayPenceresi}
+        {onGeri ? (
+          <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
+            ← {geriAd}
+          </button>
+        ) : null}
 
-      <div className={onGeri ? "mt-4" : ""}>
-        <Hata metin={hata} />
-      </div>
+        <div className={onGeri ? "mt-4" : ""}>
+          <Hata metin={hata} />
+        </div>
 
-      {kullanici && detay ? (
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-3xl border border-line bg-surface p-6">
-            <div className="flex items-center gap-4">
-              <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} buyuk />
-              <div className="min-w-0">
-                <h2 className="truncate font-display text-xl font-bold">
-                  {kullanici.username ? `@${kullanici.username}` : "Profil yok"}
-                </h2>
-                <p className="truncate text-muted">{ad || "İsim yok"}</p>
-              </div>
-              <span className="ml-auto shrink-0">
-                <DurumRozeti durum={kullanici.status} />
-              </span>
-            </div>
-
-            {detay.bio ? <p className="mt-5 whitespace-pre-line text-sm text-muted">{detay.bio}</p> : null}
-
-            <dl className="mt-6 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-              <Bilgi ad="E-posta" deger={kullanici.email ?? "—"} />
-              <Bilgi
-                ad="Giriş yöntemi"
-                deger={
-                  [...detay.loginProviders, detay.hasPassword ? "Şifre" : null].filter(Boolean).join(", ") || "—"
-                }
-              />
-              <Bilgi ad="Şehir" deger={detay.city ?? "—"} />
-              <Bilgi ad="Kayıt" deger={tarih(kullanici.createdAt)} />
-              <Bilgi ad="Son görülme" deger={tarih(kullanici.lastSeenAt)} />
-              <Bilgi ad="Açık oturum" deger={String(detay.activeSessions)} />
-              <Bilgi ad="ID" deger={kullanici.id} mono />
-            </dl>
-
-            <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-bg p-4">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold">Test hesabı</p>
-                <p className="mt-0.5 text-xs text-soft">Açıkken içerikleri gerçek kullanıcılara görünmez.</p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={!!detay.isTestAccount}
-                aria-label="Test hesabı"
-                disabled={bekliyor}
-                onClick={() => void testHesabiDegistir()}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-                  detay.isTestAccount ? "bg-lime" : "bg-surface-2 ring-1 ring-line"
-                }`}
-              >
-                <span
-                  className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-bg ring-1 ring-line transition-transform ${
-                    detay.isTestAccount ? "translate-x-5" : ""
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Sayac ad="Gönderi" deger={detay.postsCount} />
-              <Sayac ad="Katıldığı etkinlik" deger={detay.eventsJoined} />
-              <Sayac ad="Düzenlediği" deger={detay.eventsOrganized} />
-              <Sayac ad="Arkadaş" deger={detay.friendsCount} />
-              <Sayac ad="Hakkında şikâyet" deger={detay.reportsAgainst} vurgu={detay.reportsAgainst > 0} />
-              <Sayac ad="Geri bildirim" deger={detay.feedbackCount} />
-            </div>
-
-            {detay.isAdmin ? (
-              <p className="rounded-2xl border border-line p-4 text-sm text-muted">Bu bir yönetici hesabı.</p>
-            ) : kullanici.status === 3 ? (
-              <button
-                type="button"
-                disabled={bekliyor}
-                onClick={() => void baniKaldir()}
-                className="rounded-full border border-line py-3 font-semibold hover:border-lime disabled:opacity-50"
-              >
-                Banı kaldır
-              </button>
-            ) : kullanici.status === 1 || kullanici.status === 2 ? (
-              banAcik ? (
-                <div className="rounded-2xl border border-basketbol/40 bg-basketbol/5 p-4">
-                  <p className="text-sm font-semibold">Kullanıcıyı banla</p>
-                  <p className="mt-1 text-xs leading-relaxed text-muted">
-                    Açık oturumları hemen kapanır, tekrar giriş yapamaz. İşlem kayda geçer.
-                  </p>
-                  <textarea
-                    value={sebep}
-                    onChange={(event) => setSebep(event.target.value)}
-                    placeholder="Sebep (isteğe bağlı, sadece kayıtta görünür)"
-                    rows={2}
-                    maxLength={1000}
-                    className="mt-3 w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-basketbol"
-                  />
-                  <label className="mt-2 flex items-center gap-2 text-sm text-muted">
-                    <input type="checkbox" checked={fotoSil} onChange={(event) => setFotoSil(event.target.checked)} />
-                    Profil fotoğrafını da sil
-                  </label>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      disabled={bekliyor}
-                      onClick={() => void banla()}
-                      className="flex-1 rounded-full bg-basketbol py-2.5 font-semibold text-bg disabled:opacity-50"
-                    >
-                      {bekliyor ? "Bekle…" : "Banla"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBanAcik(false)}
-                      className="rounded-full px-4 text-sm text-soft hover:text-ink"
-                    >
-                      Vazgeç
-                    </button>
-                  </div>
+        {kullanici && detay ? (
+          <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="rounded-3xl border border-line bg-surface p-6">
+              <div className="flex items-center gap-4">
+                <Avatar url={kullanici.profileImageUrl} ad={ad || kullanici.username || "?"} buyuk />
+                <div className="min-w-0">
+                  <h2 className="truncate font-display text-xl font-bold">
+                    {kullanici.username ? `@${kullanici.username}` : "Profil yok"}
+                  </h2>
+                  <p className="truncate text-muted">{ad || "İsim yok"}</p>
                 </div>
-              ) : (
+                <span className="ml-auto shrink-0">
+                  <DurumRozeti durum={kullanici.status} />
+                </span>
+              </div>
+
+              {detay.bio ? <p className="mt-5 whitespace-pre-line text-sm text-muted">{detay.bio}</p> : null}
+
+              <dl className="mt-6 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                <Bilgi ad="E-posta" deger={kullanici.email ?? "—"} />
+                <Bilgi
+                  ad="Giriş yöntemi"
+                  deger={
+                    [...detay.loginProviders, detay.hasPassword ? "Şifre" : null].filter(Boolean).join(", ") || "—"
+                  }
+                />
+                <Bilgi ad="Şehir" deger={detay.city ?? "—"} />
+                <Bilgi ad="Kayıt" deger={tarih(kullanici.createdAt)} />
+                <Bilgi ad="Son görülme" deger={tarih(kullanici.lastSeenAt)} />
+                <Bilgi ad="Açık oturum" deger={String(detay.activeSessions)} />
+                <Bilgi ad="ID" deger={kullanici.id} mono />
+              </dl>
+
+              <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-bg p-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">Test hesabı</p>
+                  <p className="mt-0.5 text-xs text-soft">Açıkken içerikleri gerçek kullanıcılara görünmez.</p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setBanAcik(true)}
-                  className="rounded-full border border-basketbol/50 py-3 font-semibold text-basketbol hover:bg-basketbol/10"
+                  role="switch"
+                  aria-checked={!!detay.isTestAccount}
+                  aria-label="Test hesabı"
+                  disabled={bekliyor}
+                  onClick={() => void testHesabiDegistir()}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+                    detay.isTestAccount ? "bg-lime" : "bg-surface-2 ring-1 ring-line"
+                  }`}
                 >
-                  Banla
+                  <span
+                    className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-bg ring-1 ring-line transition-transform ${
+                      detay.isTestAccount ? "translate-x-5" : ""
+                    }`}
+                  />
                 </button>
-              )
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+              </div>
+            </div>
 
-      {kullanici ? <IcerikBolumu kullaniciId={id} /> : null}
-    </section>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Sayac ad="Gönderi" deger={detay.postsCount} />
+                <Sayac ad="Katıldığı etkinlik" deger={detay.eventsJoined} />
+                <Sayac ad="Düzenlediği" deger={detay.eventsOrganized} />
+                <Sayac ad="Arkadaş" deger={detay.friendsCount} />
+                <Sayac ad="Hakkında şikâyet" deger={detay.reportsAgainst} vurgu={detay.reportsAgainst > 0} />
+                <Sayac ad="Geri bildirim" deger={detay.feedbackCount} />
+                <Sayac ad="Engellediği" deger={detay.blockedCount} />
+                <Sayac ad="Onu engelleyen" deger={detay.blockedByCount} />
+                <Sayac ad="Yaptığı şikâyet" deger={detay.reportsByCount} />
+              </div>
+
+              {detay.isAdmin ? (
+                <p className="rounded-2xl border border-line p-4 text-sm text-muted">Bu bir yönetici hesabı.</p>
+              ) : kullanici.status === 3 ? (
+                <button
+                  type="button"
+                  disabled={bekliyor}
+                  onClick={() => void baniKaldir()}
+                  className="rounded-full border border-line py-3 font-semibold hover:border-lime disabled:opacity-50"
+                >
+                  Banı kaldır
+                </button>
+              ) : kullanici.status === 1 || kullanici.status === 2 ? (
+                banAcik ? (
+                  <div className="rounded-2xl border border-basketbol/40 bg-basketbol/5 p-4">
+                    <p className="text-sm font-semibold">Kullanıcıyı banla</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted">
+                      Açık oturumları hemen kapanır, tekrar giriş yapamaz. İşlem kayda geçer.
+                    </p>
+                    <textarea
+                      value={sebep}
+                      onChange={(event) => setSebep(event.target.value)}
+                      placeholder="Sebep (isteğe bağlı, sadece kayıtta görünür)"
+                      rows={2}
+                      maxLength={1000}
+                      className="mt-3 w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-basketbol"
+                    />
+                    <label className="mt-2 flex items-center gap-2 text-sm text-muted">
+                      <input type="checkbox" checked={fotoSil} onChange={(event) => setFotoSil(event.target.checked)} />
+                      Profil fotoğrafını da sil
+                    </label>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={bekliyor}
+                        onClick={() => void banla()}
+                        className="flex-1 rounded-full bg-basketbol py-2.5 font-semibold text-bg disabled:opacity-50"
+                      >
+                        {bekliyor ? "Bekle…" : "Banla"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBanAcik(false)}
+                        className="rounded-full px-4 text-sm text-soft hover:text-ink"
+                      >
+                        Vazgeç
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setBanAcik(true)}
+                    className="rounded-full border border-basketbol/50 py-3 font-semibold text-basketbol hover:bg-basketbol/10"
+                  >
+                    Banla
+                  </button>
+                )
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {kullanici ? <IcerikBolumu kullaniciId={id} /> : null}
+        {kullanici ? <SikayetGecmisi key={id} kullaniciId={id} onKullanici={setDigerId} onDegisti={() => void yukle()} /> : null}
+        {kullanici ? <Oturumlar key={id} kullaniciId={id} onDegisti={() => void yukle()} /> : null}
+      </section>
+    </>
   );
 }
 
@@ -648,7 +734,11 @@ function Sayac({ ad, deger, vurgu = false }: { ad: string; deger: number; vurgu?
 const GERI_BILDIRIM_FILTRELERI = [
   { deger: String(GERI_BILDIRIM_DURUMU.yeni), ad: "Yeni", sayi: "new" },
   { deger: String(GERI_BILDIRIM_DURUMU.okundu), ad: "Okundu", sayi: "read" },
-  { deger: String(GERI_BILDIRIM_DURUMU.cozuldu), ad: "Çözüldü", sayi: "resolved" },
+  {
+    deger: String(GERI_BILDIRIM_DURUMU.cozuldu),
+    ad: "Çözüldü",
+    sayi: "resolved",
+  },
   { deger: "", ad: "Tümü", sayi: null },
 ] as const;
 
@@ -660,7 +750,10 @@ function GeriBildirimler() {
 
   const yukle = useCallback(async () => {
     setHata(null);
-    const parametre = new URLSearchParams({ page: String(sayfaNo), pageSize: "20" });
+    const parametre = new URLSearchParams({
+      page: String(sayfaNo),
+      pageSize: "20",
+    });
     if (filtre) parametre.set("status", filtre);
     try {
       setVeri(await istek<GeriBildirimSayfasi>(`/api/admin/feedback?${parametre}`));
@@ -704,7 +797,9 @@ function GeriBildirimler() {
         ))}
       </div>
 
-      {veri && veri.page.items.length === 0 ? <p className="py-10 text-center text-muted">Burada bir şey yok.</p> : null}
+      {veri && veri.page.items.length === 0 ? (
+        <p className="py-10 text-center text-muted">Burada bir şey yok.</p>
+      ) : null}
       {veri ? <Sayfalama sayfa={veri.page} onDegis={setSayfaNo} /> : null}
     </section>
   );
@@ -878,21 +973,44 @@ const HEDEF_TURU_ADI: Record<string, string> = {
   post: "Gönderi",
   comment: "Yorum",
   event: "Etkinlik",
+  club: "Kulüp",
+  announcement: "Duyuru",
 };
 
-const GERI_BILDIRIM_DURUM_ADI: Record<string, string> = { New: "Yeni", Read: "Okundu", Resolved: "Çözüldü" };
+/** Kullanıcı dışındaki hedeflerde etiket (etkinlik başlığı, kulüp adı) olduğu gibi gösterilir. */
+function hedefEtiketi(kayit: IslemKaydi): string | null {
+  if (!kayit.targetLabel) return null;
+  return kayit.targetType === "event" || kayit.targetType === "club" ? kayit.targetLabel : `@${kayit.targetLabel}`;
+}
+
+const GERI_BILDIRIM_DURUM_ADI: Record<string, string> = {
+  New: "Yeni",
+  Read: "Okundu",
+  Resolved: "Çözüldü",
+};
 
 /** Kayıttaki serbest metnin işleme göre anlamı: ban gerekçesi, yeni durum... */
 function detayEtiketi(kayit: IslemKaydi): { ad: string; deger: string } | null {
   if (!kayit.details) return null;
   if (kayit.action === "user.ban") return { ad: "Ban gerekçesi", deger: kayit.details };
+  if (kayit.action === "announcement.send") return { ad: "Duyuru", deger: kayit.details };
   if (kayit.action === "feedback.status")
-    return { ad: "Yeni durum", deger: GERI_BILDIRIM_DURUM_ADI[kayit.details] ?? kayit.details };
+    return {
+      ad: "Yeni durum",
+      deger: GERI_BILDIRIM_DURUM_ADI[kayit.details] ?? kayit.details,
+    };
   return { ad: "Not", deger: kayit.details };
 }
 
 function islemRengi(action: string): string {
-  if (action === "user.ban" || action === "user.remove_avatar" || action === "event.cancel") return "bg-basketbol";
+  if (
+    action === "user.ban" ||
+    action === "user.remove_avatar" ||
+    action === "event.cancel" ||
+    action === "club.close" ||
+    action === "user.revoke_sessions"
+  )
+    return "bg-basketbol";
   if (action === "user.unban") return "bg-lime";
   return "bg-tenis";
 }
@@ -932,7 +1050,7 @@ function IslemKaydiListesi() {
                     <span className="block truncate text-sm">
                       <span className="font-semibold">@{kayit.actorUsername ?? kayit.actorUserId.slice(0, 8)}</span>{" "}
                       <span className="text-muted">{ISLEM_ADLARI[kayit.action] ?? kayit.action}</span>
-                      {kayit.targetLabel ? <span className="font-semibold"> · @{kayit.targetLabel}</span> : null}
+                      {hedefEtiketi(kayit) ? <span className="font-semibold"> · {hedefEtiketi(kayit)}</span> : null}
                     </span>
                     {detay ? (
                       <span className="mt-0.5 block truncate text-xs text-soft">
@@ -962,7 +1080,7 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
   const detay = detayEtiketi(kayit);
   const geriBildirimMi = kayit.targetType === "feedback";
   // Şikâyet/gönderi/yorum/etkinlik hedefleri kullanıcı kimliği değildir; kullanıcı detayı açılmaz.
-  const baskaHedefMi = ["report", "post", "comment", "event"].includes(kayit.targetType);
+  const baskaHedefMi = ["report", "post", "comment", "event", "club", "announcement"].includes(kayit.targetType);
 
   const geriBildirimiYukle = useCallback(async () => {
     try {
@@ -992,8 +1110,8 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
             <Bilgi
               ad="Hedef"
               deger={
-                kayit.targetLabel
-                  ? `@${kayit.targetLabel}`
+                hedefEtiketi(kayit)
+                  ? (hedefEtiketi(kayit) as string)
                   : geriBildirimMi
                     ? "Geri bildirim"
                     : baskaHedefMi
@@ -1020,9 +1138,7 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
       {baskaHedefMi ? null : geriBildirimMi ? (
         <>
           <Hata metin={hata} />
-          {geriBildirim ? (
-            <GeriBildirimKarti item={geriBildirim} onDegisti={() => void geriBildirimiYukle()} />
-          ) : null}
+          {geriBildirim ? <GeriBildirimKarti item={geriBildirim} onDegisti={() => void geriBildirimiYukle()} /> : null}
         </>
       ) : (
         <KullaniciDetayi id={kayit.targetId} />

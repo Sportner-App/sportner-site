@@ -174,9 +174,34 @@ export type KullaniciDetay = {
   friendsCount: number;
   activeSessions: number;
   reportsAgainst: number;
+  reportsByCount: number;
+  blockedCount: number;
+  blockedByCount: number;
   feedbackCount: number;
   isTestAccount: boolean;
 };
+
+/** Kullanıcının açık (yenilenebilir) oturumu; admin panel oturumu (`Oturum`) ile karışmasın. */
+export type KullaniciOturumu = {
+  id: string;
+  createdAt: string;
+  expiresAt: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  lastRotatedAt: string | null;
+};
+
+export type DuyuruSecenekleri = {
+  cities: string[];
+  sports: { id: string; name: string }[];
+};
+
+export type DuyuruOnizleme = { recipientCount: number };
+
+export type DuyuruSonucu = { sentCount: number };
+
+export const DUYURU_BASLIK_MAX = 65;
+export const DUYURU_METIN_MAX = 240;
 
 /** API'deki AppFeedbackStatus sayıları. */
 export const GERI_BILDIRIM_DURUMU = { yeni: 0, okundu: 1, cozuldu: 2 } as const;
@@ -226,6 +251,10 @@ export const ISLEM_ADLARI: Record<string, string> = {
   "comment.unhide": "Yorumu geri açtı",
   "event.cancel": "Etkinliği iptal etti",
   "user.test_account": "Test hesabı ayarını değiştirdi",
+  "club.visibility": "Kulüp görünürlüğünü değiştirdi",
+  "club.close": "Kulübü kapattı",
+  "announcement.send": "Duyuru gönderdi",
+  "user.revoke_sessions": "Oturumları kapattı",
 };
 
 // ---- Şikâyetler ve içerik moderasyonu ----
@@ -341,3 +370,108 @@ export function gorece(deger: string | null): string {
   if (gun < 30) return `${gun} gün önce`;
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(deger));
 }
+
+// ---- Özet, etkinlikler ve kulüpler ----
+
+export type Ozet = {
+  users: { total: number; new24h: number; new7d: number; new30d: number; active24h: number; active7d: number; active30d: number };
+  events: { created7d: number; upcoming: number; completed7d: number; cancelled7d: number };
+  clubs: { total: number; new7d: number };
+  posts: { new7d: number };
+  pending: { reports: number; feedback: number };
+  signupsByDay: { date: string; count: number }[];
+};
+
+export type EtkinlikOzet = {
+  id: string;
+  title: string;
+  status: number;
+  eventDate: string;
+  createdAt: string;
+  organizer: KullaniciRef | null;
+  club: { id: string; name: string } | null;
+  sportName: string | null;
+  cityName: string | null;
+  participantCount: number;
+  maxParticipants: number | null;
+  isTestHosted: boolean;
+};
+
+export type EtkinlikKatilimcisi = {
+  user: KullaniciRef | null;
+  guestName: string | null;
+  status: number;
+  joinedAt: string | null;
+};
+
+export type EtkinlikDetay = EtkinlikOzet & {
+  description: string | null;
+  district: string | null;
+  address: string | null;
+  isPaid: boolean;
+  feeAmount: number | null;
+  isOrganizationOnly: boolean;
+  openReports: number;
+  totalReports: number;
+  participants: EtkinlikKatilimcisi[];
+};
+
+export type KulupOzet = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  isPublic: boolean;
+  createdAt: string;
+  deletedAt: string | null;
+  founder: KullaniciRef | null;
+  cityName: string | null;
+  memberCount: number;
+  eventCount: number;
+  isTestFounded: boolean;
+};
+
+export type KulupDetay = KulupOzet & {
+  description: string | null;
+  eventCreationPolicy: number;
+  members: { user: KullaniciRef | null; role: number; status: number; joinedAt: string | null }[];
+  recentEvents: { id: string; title: string; status: number; eventDate: string }[];
+  openReports: number;
+};
+
+/** API'deki EventStatus sayıları. */
+export const ETKINLIK_DURUMU: Record<number, { ad: string; rozet: string }> = {
+  0: { ad: "Taslak", rozet: "bg-soft/10 text-muted ring-soft/25" },
+  1: { ad: "Yayında", rozet: "bg-lime/10 text-lime ring-lime/25" },
+  2: { ad: "Dolu", rozet: "bg-tenis/10 text-tenis ring-tenis/25" },
+  3: { ad: "Tamamlandı", rozet: "bg-soft/10 text-muted ring-soft/25" },
+  4: { ad: "İptal", rozet: "bg-basketbol/10 text-basketbol ring-basketbol/30" },
+};
+
+/** API'deki ParticipantStatus sayıları. */
+export const KATILIMCI_DURUMU: Record<number, string> = {
+  0: "Başvurdu",
+  1: "Onaylı",
+  2: "Reddedildi",
+  3: "İptal",
+  4: "Katıldı",
+  5: "Gelmedi",
+  6: "Davetli",
+};
+
+/** API'deki OrganizationRole sayıları. */
+export const KULUP_ROLU: Record<number, string> = { 0: "Kurucu", 1: "Yönetici", 2: "Üye" };
+
+/** API'deki OrganizationMemberStatus sayıları. */
+export const KULUP_UYELIK_DURUMU: Record<number, string> = {
+  0: "Başvurdu",
+  1: "Onaylı",
+  2: "Reddedildi",
+  3: "Ayrıldı",
+  4: "Engelli",
+};
+
+/** API'deki OrganizationEventCreationPolicy sayıları. */
+export const KULUP_ETKINLIK_POLITIKASI: Record<number, string> = {
+  0: "Tüm üyeler",
+  1: "Yalnızca yöneticiler",
+};

@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiHatasi } from "@/lib/admin/api";
+import { ApiHatasi, type KullaniciRef } from "@/lib/admin/api";
 
 export function mesaj(hata: unknown): string {
   return hata instanceof ApiHatasi || hata instanceof Error ? hata.message : "Beklenmeyen bir hata oluştu.";
@@ -68,3 +68,37 @@ export function Bilgi({ ad, deger, mono = false }: { ad: string; deger: string; 
     </div>
   );
 }
+
+export function kullaniciAdi(ref: KullaniciRef): { ad: string; avatarAd: string } {
+  const isim = [ref.firstName, ref.lastName].filter(Boolean).join(" ");
+  return {
+    ad: ref.username ? `@${ref.username}` : isim || "Profil yok",
+    avatarAd: isim || ref.username || "?",
+  };
+}
+
+export function KullaniciSatiri({ kisi, onTikla }: { kisi: KullaniciRef; onTikla?: () => void }) {
+  const { ad, avatarAd } = kullaniciAdi(kisi);
+  const icerik = (
+    <>
+      <Avatar url={kisi.profileImageUrl} ad={avatarAd} />
+      <span className="min-w-0 truncate text-sm font-semibold">{ad}</span>
+    </>
+  );
+  return onTikla ? (
+    <button
+      type="button"
+      onClick={onTikla}
+      className="flex min-w-0 items-center gap-2.5 text-left transition-colors hover:text-lime"
+    >
+      {icerik}
+    </button>
+  ) : (
+    <span className="flex min-w-0 items-center gap-2.5">{icerik}</span>
+  );
+}
+
+export const IKINCIL_DUGME = "rounded-full border border-line px-4 py-2 text-sm text-muted hover:text-ink disabled:opacity-50";
+export const ANA_DUGME = "rounded-full bg-lime px-4 py-2 text-sm font-semibold text-bg disabled:opacity-50";
+export const TEHLIKE_DUGME =
+  "rounded-full border border-basketbol/50 px-4 py-2 text-sm font-semibold text-basketbol hover:bg-basketbol/10 disabled:opacity-50";

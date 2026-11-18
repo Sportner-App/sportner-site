@@ -11,23 +11,14 @@ import {
   tarih,
   type IcerikDurumu,
   type IcerikKaydi,
-  type KullaniciRef,
   type Sayfa,
   type SikayetKaydi,
 } from "@/lib/admin/api";
 
 import { useOnay } from "./Onay";
-import { Avatar, Hata, mesaj, Sayfalama } from "./ortak";
+import { ANA_DUGME, Avatar, Hata, IKINCIL_DUGME, KullaniciSatiri, mesaj, Sayfalama, TEHLIKE_DUGME } from "./ortak";
 
 // ---------------------------------------------------------------- Ortak parçalar
-
-function kullaniciAdi(ref: KullaniciRef): { ad: string; avatarAd: string } {
-  const isim = [ref.firstName, ref.lastName].filter(Boolean).join(" ");
-  return {
-    ad: ref.username ? `@${ref.username}` : isim || "Profil yok",
-    avatarAd: isim || ref.username || "?",
-  };
-}
 
 function DurumEtiketi({ durum }: { durum: IcerikDurumu }) {
   const bilgi = ICERIK_DURUMU[durum];
@@ -41,36 +32,10 @@ function DurumEtiketi({ durum }: { durum: IcerikDurumu }) {
   );
 }
 
-function KullaniciSatiri({ kisi, onTikla }: { kisi: KullaniciRef; onTikla?: () => void }) {
-  const { ad, avatarAd } = kullaniciAdi(kisi);
-  const icerik = (
-    <>
-      <Avatar url={kisi.profileImageUrl} ad={avatarAd} />
-      <span className="min-w-0 truncate text-sm font-semibold">{ad}</span>
-    </>
-  );
-  return onTikla ? (
-    <button
-      type="button"
-      onClick={onTikla}
-      className="flex min-w-0 items-center gap-2.5 text-left transition-colors hover:text-lime"
-    >
-      {icerik}
-    </button>
-  ) : (
-    <span className="flex min-w-0 items-center gap-2.5">{icerik}</span>
-  );
-}
-
 function Kucukgorsel({ url }: { url: string }) {
   // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarımda next/image optimize etmiyor
   return <img src={url} alt="" className="size-16 shrink-0 rounded-xl object-cover ring-1 ring-line" />;
 }
-
-const IKINCIL_DUGME = "rounded-full border border-line px-4 py-2 text-sm text-muted hover:text-ink disabled:opacity-50";
-const ANA_DUGME = "rounded-full bg-lime px-4 py-2 text-sm font-semibold text-bg disabled:opacity-50";
-const TEHLIKE_DUGME =
-  "rounded-full border border-basketbol/50 px-4 py-2 text-sm font-semibold text-basketbol hover:bg-basketbol/10 disabled:opacity-50";
 
 // ---------------------------------------------------------------- Şikâyetler sekmesi
 
@@ -175,7 +140,7 @@ function cozumAciklamasi(entityType: number): string {
   return "Hedefe dokunulmaz.";
 }
 
-function SikayetKarti({
+export function SikayetKarti({
   kayit,
   onDegisti,
   onKullanici,
