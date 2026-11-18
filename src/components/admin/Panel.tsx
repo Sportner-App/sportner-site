@@ -24,23 +24,24 @@ import {
 } from "@/lib/admin/api";
 
 import { useOnay } from "./Onay";
+import { Avatar, Bilgi, Hata, mesaj, Sayfalama } from "./ortak";
+import { IcerikBolumu, Sikayetler } from "./Sikayetler";
 
-type Sekme = "kullanicilar" | "geri-bildirim" | "kayit";
+type Sekme = "kullanicilar" | "sikayetler" | "geri-bildirim" | "kayit";
 
 const SEKMELER: { id: Sekme; ad: string }[] = [
   { id: "kullanicilar", ad: "Kullanıcılar" },
+  { id: "sikayetler", ad: "Şikâyetler" },
   { id: "geri-bildirim", ad: "Geri bildirimler" },
   { id: "kayit", ad: "İşlem kaydı" },
 ];
-
-function mesaj(hata: unknown): string {
-  return hata instanceof ApiHatasi || hata instanceof Error ? hata.message : "Beklenmeyen bir hata oluştu.";
-}
 
 export default function Panel() {
   const [hazir, setHazir] = useState(false);
   const [girisli, setGirisli] = useState(false);
   const [sekme, setSekme] = useState<Sekme>("kullanicilar");
+  // Şikâyetler sekmesinden "Sahibine git" ile açılan kullanıcı; sekme değişince kapanır.
+  const [sikayetKullanicisi, setSikayetKullanicisi] = useState<string | null>(null);
 
   useEffect(() => {
     const dustu = () => setGirisli(false);
@@ -98,7 +99,10 @@ export default function Panel() {
             <button
               key={s.id}
               type="button"
-              onClick={() => setSekme(s.id)}
+              onClick={() => {
+                setSekme(s.id);
+                setSikayetKullanicisi(null);
+              }}
               className={`shrink-0 border-b-2 pb-3 pt-1 text-sm font-semibold transition-colors ${
                 sekme === s.id ? "border-lime text-ink" : "border-transparent text-soft hover:text-muted"
               }`}
@@ -111,6 +115,21 @@ export default function Panel() {
 
       <div className="pt-8">
         {sekme === "kullanicilar" ? <Kullanicilar /> : null}
+        {sekme === "sikayetler" ? (
+          <>
+            {sikayetKullanicisi ? (
+              <KullaniciDetayi
+                id={sikayetKullanicisi}
+                onGeri={() => setSikayetKullanicisi(null)}
+                geriAd="Şikâyetler"
+              />
+            ) : null}
+            {/* Liste açık kalır (gizlenir) ki geri dönünce filtre ve sayfa korunsun. */}
+            <div className={sikayetKullanicisi ? "hidden" : ""}>
+              <Sikayetler onKullanici={setSikayetKullanicisi} />
+            </div>
+          </>
+        ) : null}
         {sekme === "geri-bildirim" ? <GeriBildirimler /> : null}
         {sekme === "kayit" ? <IslemKaydiListesi /> : null}
       </div>
@@ -238,54 +257,6 @@ function Giris({ onGiris }: { onGiris: () => void }) {
 
 // ---------------------------------------------------------------- Ortak parçalar
 
-function Avatar({ url, ad, buyuk = false }: { url: string | null; ad: string; buyuk?: boolean }) {
-  const boyut = buyuk ? "h-16 w-16 text-xl" : "h-10 w-10 text-sm";
-  if (url) {
-    // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarımda next/image optimize etmiyor
-    return <img src={url} alt="" className={`${boyut} shrink-0 rounded-full object-cover ring-1 ring-line`} />;
-  }
-  return (
-    <span className={`${boyut} grid shrink-0 place-items-center rounded-full bg-surface-2 font-semibold text-muted ring-1 ring-line`}>
-      {(ad.trim()[0] ?? "?").toLocaleUpperCase("tr-TR")}
-    </span>
-  );
-}
-
-function Sayfalama({
-  sayfa,
-  onDegis,
-}: {
-  sayfa: { page: number; totalPages: number; totalCount: number; hasNext: boolean; hasPrevious: boolean };
-  onDegis: (yeni: number) => void;
-}) {
-  return (
-    <div className="mt-5 flex items-center justify-between text-sm text-muted">
-      <span>{sayfa.totalCount} kayıt</span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          disabled={!sayfa.hasPrevious}
-          onClick={() => onDegis(sayfa.page - 1)}
-          className="rounded-full border border-line px-3 py-1.5 disabled:opacity-30"
-        >
-          Önceki
-        </button>
-        <span className="font-mono text-xs">
-          {sayfa.page} / {Math.max(sayfa.totalPages, 1)}
-        </span>
-        <button
-          type="button"
-          disabled={!sayfa.hasNext}
-          onClick={() => onDegis(sayfa.page + 1)}
-          className="rounded-full border border-line px-3 py-1.5 disabled:opacity-30"
-        >
-          Sonraki
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function DurumRozeti({ durum }: { durum: number }) {
   const bilgi = KULLANICI_DURUMU[durum];
   return (
@@ -294,12 +265,6 @@ function DurumRozeti({ durum }: { durum: number }) {
       {bilgi?.ad ?? durum}
     </span>
   );
-}
-
-function Hata({ metin }: { metin: string | null }) {
-  return metin ? (
-    <p className="rounded-xl border border-basketbol/40 bg-basketbol/10 px-4 py-3 text-sm text-basketbol">{metin}</p>
-  ) : null;
 }
 
 // ---------------------------------------------------------------- Kullanıcılar
@@ -427,7 +392,7 @@ function Kullanicilar() {
   );
 }
 
-function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
+function KullaniciDetayi({ id, onGeri, geriAd = "Kullanıcılar" }: { id: string; onGeri?: () => void; geriAd?: string }) {
   const [detay, setDetay] = useState<KullaniciDetay | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const [banAcik, setBanAcik] = useState(false);
@@ -488,6 +453,36 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
     }
   };
 
+  const testHesabiDegistir = async () => {
+    if (!detay) {
+      return;
+    }
+    const yeni = !detay.isTestAccount;
+    const onay = await onayIste({
+      baslik: yeni ? "Test hesabı olarak işaretlensin mi?" : "Test hesabı işareti kaldırılsın mı?",
+      metin: yeni
+        ? "Test hesabının içerikleri gerçek kullanıcılara görünmez."
+        : "Hesabın içerikleri gerçek kullanıcılara tekrar görünür olacak.",
+      onayAd: yeni ? "Test hesabı yap" : "İşareti kaldır",
+    });
+    if (!onay) {
+      return;
+    }
+    setBekliyor(true);
+    setHata(null);
+    try {
+      await istek<void>(`/api/admin/users/${id}/test-account`, {
+        method: "POST",
+        body: JSON.stringify({ isTestAccount: yeni }),
+      });
+      await yukle();
+    } catch (error) {
+      setHata(mesaj(error));
+    } finally {
+      setBekliyor(false);
+    }
+  };
+
   const kullanici = detay?.user;
   const ad = kullanici ? [kullanici.firstName, kullanici.lastName].filter(Boolean).join(" ") : "";
 
@@ -496,7 +491,7 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
       {onayPenceresi}
       {onGeri ? (
         <button type="button" onClick={onGeri} className="text-sm text-soft hover:text-ink">
-          ← Kullanıcılar
+          ← {geriAd}
         </button>
       ) : null}
 
@@ -536,6 +531,30 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
               <Bilgi ad="Açık oturum" deger={String(detay.activeSessions)} />
               <Bilgi ad="ID" deger={kullanici.id} mono />
             </dl>
+
+            <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-bg p-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Test hesabı</p>
+                <p className="mt-0.5 text-xs text-soft">Açıkken içerikleri gerçek kullanıcılara görünmez.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!detay.isTestAccount}
+                aria-label="Test hesabı"
+                disabled={bekliyor}
+                onClick={() => void testHesabiDegistir()}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+                  detay.isTestAccount ? "bg-lime" : "bg-surface-2 ring-1 ring-line"
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-bg ring-1 ring-line transition-transform ${
+                    detay.isTestAccount ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4">
@@ -609,16 +628,9 @@ function KullaniciDetayi({ id, onGeri }: { id: string; onGeri?: () => void }) {
           </div>
         </div>
       ) : null}
-    </section>
-  );
-}
 
-function Bilgi({ ad, deger, mono = false }: { ad: string; deger: string; mono?: boolean }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs text-soft">{ad}</dt>
-      <dd className={`truncate ${mono ? "font-mono text-xs" : ""}`}>{deger}</dd>
-    </div>
+      {kullanici ? <IcerikBolumu kullaniciId={id} /> : null}
+    </section>
   );
 }
 
@@ -861,6 +873,13 @@ function GeriBildirimKarti({ item, onDegisti }: { item: GeriBildirim; onDegisti:
 
 // ---------------------------------------------------------------- İşlem kaydı
 
+const HEDEF_TURU_ADI: Record<string, string> = {
+  report: "Şikâyet",
+  post: "Gönderi",
+  comment: "Yorum",
+  event: "Etkinlik",
+};
+
 const GERI_BILDIRIM_DURUM_ADI: Record<string, string> = { New: "Yeni", Read: "Okundu", Resolved: "Çözüldü" };
 
 /** Kayıttaki serbest metnin işleme göre anlamı: ban gerekçesi, yeni durum... */
@@ -873,7 +892,7 @@ function detayEtiketi(kayit: IslemKaydi): { ad: string; deger: string } | null {
 }
 
 function islemRengi(action: string): string {
-  if (action === "user.ban" || action === "user.remove_avatar") return "bg-basketbol";
+  if (action === "user.ban" || action === "user.remove_avatar" || action === "event.cancel") return "bg-basketbol";
   if (action === "user.unban") return "bg-lime";
   return "bg-tenis";
 }
@@ -942,6 +961,8 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
   const [hata, setHata] = useState<string | null>(null);
   const detay = detayEtiketi(kayit);
   const geriBildirimMi = kayit.targetType === "feedback";
+  // Şikâyet/gönderi/yorum/etkinlik hedefleri kullanıcı kimliği değildir; kullanıcı detayı açılmaz.
+  const baskaHedefMi = ["report", "post", "comment", "event"].includes(kayit.targetType);
 
   const geriBildirimiYukle = useCallback(async () => {
     try {
@@ -975,7 +996,9 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
                   ? `@${kayit.targetLabel}`
                   : geriBildirimMi
                     ? "Geri bildirim"
-                    : kayit.targetId
+                    : baskaHedefMi
+                      ? (HEDEF_TURU_ADI[kayit.targetType] ?? kayit.targetType)
+                      : kayit.targetId
               }
             />
             <Bilgi ad="Zaman" deger={`${tarih(kayit.createdAt)} (${gorece(kayit.createdAt)})`} />
@@ -989,10 +1012,12 @@ function IslemDetayi({ kayit, onGeri }: { kayit: IslemKaydi; onGeri: () => void 
         </div>
       </div>
 
-      <h3 className="mb-3 mt-8 font-mono text-xs uppercase tracking-[0.18em] text-soft">
-        {geriBildirimMi ? "İlgili geri bildirim" : "İlgili kullanıcı"}
-      </h3>
-      {geriBildirimMi ? (
+      {baskaHedefMi ? null : (
+        <h3 className="mb-3 mt-8 font-mono text-xs uppercase tracking-[0.18em] text-soft">
+          {geriBildirimMi ? "İlgili geri bildirim" : "İlgili kullanıcı"}
+        </h3>
+      )}
+      {baskaHedefMi ? null : geriBildirimMi ? (
         <>
           <Hata metin={hata} />
           {geriBildirim ? (

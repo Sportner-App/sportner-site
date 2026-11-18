@@ -175,6 +175,7 @@ export type KullaniciDetay = {
   activeSessions: number;
   reportsAgainst: number;
   feedbackCount: number;
+  isTestAccount: boolean;
 };
 
 /** API'deki AppFeedbackStatus sayıları. */
@@ -217,6 +218,99 @@ export const ISLEM_ADLARI: Record<string, string> = {
   "user.remove_avatar": "Profil fotoğrafını kaldırdı",
   "feedback.status": "Geri bildirim durumunu değiştirdi",
   "feedback.reply": "Geri bildirime yanıt gönderdi",
+  "report.resolve": "Şikâyeti çözdü",
+  "report.reject": "Şikâyeti reddetti",
+  "post.hide": "Gönderiyi gizledi",
+  "post.unhide": "Gönderiyi geri açtı",
+  "comment.hide": "Yorumu gizledi",
+  "comment.unhide": "Yorumu geri açtı",
+  "event.cancel": "Etkinliği iptal etti",
+  "user.test_account": "Test hesabı ayarını değiştirdi",
+};
+
+// ---- Şikâyetler ve içerik moderasyonu ----
+
+export type KullaniciRef = {
+  id: string;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profileImageUrl: string | null;
+};
+
+export type IcerikDurumu =
+  | "active"
+  | "hidden"
+  | "cancelled"
+  | "redacted"
+  | "flagged"
+  | "banned"
+  | "missing";
+
+export type SikayetHedefi = {
+  exists: boolean;
+  owner: KullaniciRef | null;
+  preview: string | null;
+  imageUrl: string | null;
+  state: IcerikDurumu;
+  postId: string | null;
+  eventId: string | null;
+};
+
+export type SikayetKaydi = {
+  id: string;
+  entityType: number;
+  entityId: string;
+  reasonCode: string | null;
+  reasonName: string | null;
+  description: string | null;
+  status: number;
+  createdAt: string;
+  reviewedAt: string | null;
+  resolutionNote: string | null;
+  reporter: KullaniciRef | null;
+  target: SikayetHedefi;
+  openReportsOnTarget: number;
+};
+
+export type IcerikKaydi = {
+  type: number;
+  id: string;
+  preview: string | null;
+  imageUrl: string | null;
+  state: IcerikDurumu;
+  createdAt: string;
+  postId: string | null;
+  eventDate: string | null;
+};
+
+/** API'deki ReportStatus sayıları. */
+export const SIKAYET_DURUMU: Record<number, { ad: string; rozet: string }> = {
+  0: { ad: "Bekliyor", rozet: "bg-tenis/10 text-tenis ring-tenis/25" },
+  1: { ad: "İnceleniyor", rozet: "bg-lime/10 text-lime ring-lime/25" },
+  2: { ad: "Çözüldü", rozet: "bg-soft/10 text-muted ring-soft/25" },
+  3: { ad: "Reddedildi", rozet: "bg-soft/10 text-soft ring-soft/20" },
+};
+
+/** API'deki ReportEntityType sayıları. */
+export const SIKAYET_TURU: Record<number, string> = {
+  0: "Kullanıcı",
+  1: "Etkinlik",
+  2: "Gönderi",
+  3: "Yorum",
+  4: "Değerlendirme",
+  5: "Mesaj",
+  6: "Albüm",
+};
+
+export const ICERIK_DURUMU: Record<IcerikDurumu, { ad: string; rozet: string }> = {
+  active: { ad: "Yayında", rozet: "bg-lime/10 text-lime ring-lime/25" },
+  hidden: { ad: "Gizli", rozet: "bg-tenis/10 text-tenis ring-tenis/25" },
+  cancelled: { ad: "İptal", rozet: "bg-basketbol/10 text-basketbol ring-basketbol/30" },
+  redacted: { ad: "İçerik silindi", rozet: "bg-soft/10 text-muted ring-soft/25" },
+  flagged: { ad: "İşaretli", rozet: "bg-tenis/10 text-tenis ring-tenis/25" },
+  banned: { ad: "Banlı", rozet: "bg-basketbol/10 text-basketbol ring-basketbol/30" },
+  missing: { ad: "Silinmiş", rozet: "bg-soft/10 text-soft ring-soft/20" },
 };
 
 export function tarih(deger: string | null): string {
